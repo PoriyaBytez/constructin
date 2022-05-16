@@ -12,6 +12,7 @@ class RouteHelper {
   static String home = '/HomeScreen';
   static String createProject = '/CreateProject';
 
+
   static List<GetPage> routes = [
     // GetPage(name: splash, page: () => SplashScreen()),
     GetPage(name: signIn, page: () => SignInScreen()),
