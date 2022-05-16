@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "356635255511",
+    "project_id": "constructin-55efa",
+    "storage_bucket": "constructin-55efa.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356635255511:android:6c29d50db6e412b9cf4692",
+        "android_client_info": {
+          "package_name": "com.app.constructin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "356635255511-4g6rhuko76mjtskiiqoaohvm2vhef9e9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm57MTeqia31buPxw4dyfvzPy0kFD813c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "356635255511-4g6rhuko76mjtskiiqoaohvm2vhef9e9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
