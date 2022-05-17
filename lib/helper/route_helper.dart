@@ -14,7 +14,6 @@ class RouteHelper {
 
 
   static List<GetPage> routes = [
-
     // GetPage(name: splash, page: () => SplashScreen()),
     GetPage(name: signIn, page: () => SignInScreen()),
     GetPage(name: mobileNumberScreen, page: () => MobileNumberScreen()),
