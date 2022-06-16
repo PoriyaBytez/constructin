@@ -1,3 +1,3 @@
 class AppFonts {
-  static const String gilroy = 'gilroy';
+  static const String gilroy = 'Gilroy';
 }

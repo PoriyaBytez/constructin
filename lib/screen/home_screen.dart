@@ -1,9 +1,10 @@
+import 'package:constructin/helper/route_helper.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
 import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/unil.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 
 import '../utils/app_asset.dart';
@@ -82,14 +83,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 10.w,),
+            SizedBox(
+              height: 10.w,
+            ),
             Center(
-              child: Text(
-                AppString.youdon_have_any_active,
-                textAlign: TextAlign.center,
-                style: Utils.regularTextStyle(
-                    color: AppColor.textColor1,
-                    fontSize: AppDimens.medium_font),
+              child: Padding(
+                padding: EdgeInsets.only(left: 10.w, right: 10.w),
+                child: Text(
+                  AppString.youdon_have_any_active,
+                  textAlign: TextAlign.center,
+                  style: Utils.regularTextStyle(
+                      color: AppColor.textColor1,
+                      fontSize: AppDimens.default_font),
+                ),
               ),
             ),
             Padding(
@@ -98,7 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   name: AppString.createNewProject,
                   strColor: AppColor.white,
                   bg: AppColor.mainColor,
-                  onPress: () {}),
+                  onPress: () {
+                    Get.offAndToNamed(RouteHelper.createProject, arguments: 0);
+                  }),
             ),
             Spacer(),
           ],

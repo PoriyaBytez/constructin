@@ -1,9 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:constructin/helper/route_helper.dart';
 import 'package:constructin/utils/app_asset.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
 import 'package:constructin/utils/unil.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../utils/app_fonts.dart';
@@ -19,7 +21,7 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   late CarouselSlider carouselSlider;
-  int _current = 0;
+  final int _current = 0;
 
   List imgList = [
     ImageAsset.sign_in_image,
@@ -36,6 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
   //   'https://images.unsplash.com/photo-1523205771623-e0faa4d2813d?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=89719a0d55dd05e2deae4120227e6efc&auto=format&fit=crop&w=1953&q=80',
   //   'https://images.unsplash.com/photo-1508704019882-f9cf40e475b4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=8c6e5e3aba713b17aa1fe71ab4f0ae5b&auto=format&fit=crop&w=1352&q=80',
   // ];
+
   List stringList = [
     AppString.unifiedSiteExperience,
     AppString.sitePlanProgress,
@@ -53,134 +56,142 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    Utils.getFCMToken();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Spacer(),
             Text(
-              AppString.appName,
+              AppString.appName1,
               style: TextStyle(
                   fontSize: AppDimens.extra_large_font,
                   color: AppColor.mainColor,
                   fontFamily: AppFonts.gilroy,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 5.2),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 3.2),
             ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                carouselSlider = CarouselSlider(
-                  items: imgList.map((imgUrl) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return Padding(
-                          padding: const EdgeInsets.all(0.0),
-                          child: Container(
-                              width: MediaQuery.of(context).size.width,
-                              margin: EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Image.asset(imgUrl)),
-                        );
-                      },
-                    );
-                  }).toList(),
-                  options: CarouselOptions(
-                      initialPage: 0,
-                      autoPlay: true,
-                      viewportFraction: 1.0,
-                      reverse: false,
-                      enableInfiniteScroll: true,
-                      autoPlayInterval: Duration(seconds: 5),
-                      autoPlayAnimationDuration: Duration(milliseconds: 2000),
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _current = index;
-                        });
-                      }),
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: map<Widget>(imgList, (index, url) {
-                    return Container(
-                      width: 10.0,
-                      height: 10.0,
-                      margin:
-                          EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColor.black, width: 1.0),
-                        color: _current == index
-                            ? AppColor.mainColor
-                            : AppColor.white,
-                      ),
-                    );
-                  }),
-                ),
-                carouselSlider = CarouselSlider(
-                  items: stringList.map((str) {
-                    return Builder(
-                      builder: (BuildContext context) {
-                        return Container(
-                          width: MediaQuery.of(context).size.width,
-                          margin: EdgeInsets.symmetric(horizontal: 10.0),
-                          child: Center(
-                            child: Text(
-                              str,
-                              style: Utils.regularTextStyle(
-                                  color: AppColor.mainColor, fontSize: 6.w),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }).toList(),
-                  options: CarouselOptions(
-                      height: 10.w,
-                      initialPage: 0,
-                      autoPlay: true,
-                      reverse: false,
-                      enlargeCenterPage: true,
-                      viewportFraction: 1.0,
-                      enableInfiniteScroll: true,
-                      autoPlayInterval: Duration(seconds: 5),
-                      autoPlayAnimationDuration: Duration(milliseconds: 2000),
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _current = index;
-                        });
-                      }),
-                ),
-              ],
-            ),
-            Spacer(),
-            Spacer(),
-            Spacer(),
-            Spacer(),
+            // Column(
+            //   mainAxisAlignment: MainAxisAlignment.center,
+            //   crossAxisAlignment: CrossAxisAlignment.center,
+            //   children: <Widget>[
+            //     carouselSlider = CarouselSlider(
+            //       items: imgList.map((imgUrl) {
+            //         return Builder(
+            //           builder: (BuildContext context) {
+            //             return Padding(
+            //               padding: const EdgeInsets.all(0.0),
+            //               child: Container(
+            //                   width: MediaQuery.of(context).size.width,
+            //                   margin: EdgeInsets.symmetric(horizontal: 10.0),
+            //                   child: Image.asset(imgUrl)),
+            //             );
+            //           },
+            //         );
+            //       }).toList(),
+            //       options: CarouselOptions(
+            //           initialPage: 0,
+            //           autoPlay: true,
+            //           viewportFraction: 1.0,
+            //           reverse: false,
+            //           enableInfiniteScroll: true,
+            //           autoPlayInterval: Duration(seconds: 5),
+            //           autoPlayAnimationDuration: Duration(milliseconds: 2000),
+            //           scrollDirection: Axis.horizontal,
+            //           onPageChanged: (index, reason) {
+            //             setState(() {
+            //               _current = index;
+            //             });
+            //           }),
+            //     ),
+            //     SizedBox(
+            //       height: 20,
+            //     ),
+            //     Row(
+            //       mainAxisAlignment: MainAxisAlignment.center,
+            //       children: map<Widget>(imgList, (index, url) {
+            //         return Container(
+            //           width: 10.0,
+            //           height: 10.0,
+            //           margin:
+            //               EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
+            //           decoration: BoxDecoration(
+            //             shape: BoxShape.circle,
+            //             border: Border.all(color: AppColor.black, width: 1.0),
+            //             color: _current == index
+            //                 ? AppColor.mainColor
+            //                 : AppColor.white,
+            //           ),
+            //         );
+            //       }),
+            //     ),
+            //     carouselSlider = CarouselSlider(
+            //       items: stringList.map((str) {
+            //         return Builder(
+            //           builder: (BuildContext context) {
+            //             return Container(
+            //               width: MediaQuery.of(context).size.width,
+            //               margin: EdgeInsets.symmetric(horizontal: 10.0),
+            //               child: Center(
+            //                 child: Text(
+            //                   str,
+            //                   style: Utils.regularTextStyle(
+            //                       color: AppColor.mainColor, fontSize: 6.w),
+            //                 ),
+            //               ),
+            //             );
+            //           },
+            //         );
+            //       }).toList(),
+            //       options: CarouselOptions(
+            //           height: 10.w,
+            //           initialPage: 0,
+            //           autoPlay: true,
+            //           reverse: false,
+            //           enlargeCenterPage: true,
+            //           viewportFraction: 1.0,
+            //           enableInfiniteScroll: true,
+            //           autoPlayInterval: Duration(seconds: 5),
+            //           autoPlayAnimationDuration: Duration(milliseconds: 2000),
+            //           scrollDirection: Axis.horizontal,
+            //           onPageChanged: (index, reason) {
+            //             setState(() {
+            //               _current = index;
+            //             });
+            //           }),
+            //     ),
+            //   ],
+            // ),
+            // Spacer(),
+            // Spacer(),
+            // Spacer(),
+            // Spacer(),
             Text(
               AppString.readyToExperience,
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.start,
               style: Utils.regularTextStyle(
-                  color: AppColor.black, fontSize: 18.00),
+                  color: AppColor.textColor, fontSize: 18.00),
+            ),
+            SizedBox(
+              height: 10.w,
             ),
             Padding(
-              padding: EdgeInsets.all(15.0),
+              padding: EdgeInsets.all(20.0),
               child: commandButton(
                   name: AppString.signIn,
-                  strColor: AppColor.mainColor,
-                  bg: AppColor.white,
+                  strColor: AppColor.white,
+                  bg: AppColor.mainColor,
                   onPress: () {
-                    
+                    Get.toNamed(RouteHelper.mobileNumberScreen);
                   }),
             ),
-            Spacer(),
           ],
         ),
       ),

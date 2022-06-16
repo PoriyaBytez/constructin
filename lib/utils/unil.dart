@@ -1,3 +1,6 @@
+import 'package:constructin/utils/shared_preferences/preferences_key.dart';
+import 'package:constructin/utils/shared_preferences/preferences_manager.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 
 import 'app_color.dart';
@@ -14,8 +17,7 @@ class Utils {
           color: color,
           height: height,
           fontFamily: AppFonts.gilroy,
-          fontStyle: FontStyle.normal,
-          fontWeight: FontWeight.w100,
+          fontWeight: FontWeight.w400,
           wordSpacing: 2.0);
 
   static TextStyle mediumTextStyle(
@@ -55,4 +57,13 @@ class Utils {
         height: height,
         fontWeight: fontWeight,
       );
+
+  static getFCMToken() async {
+    late FirebaseMessaging firebaseMessaging;
+    firebaseMessaging = FirebaseMessaging.instance;
+    await firebaseMessaging.getToken().then((value) {
+      print("Tokensss :${value.toString()}");
+      PreferencesManager.setString(PreferencesKey.fcmToken, value.toString().trim());
+    });
+  }
 }

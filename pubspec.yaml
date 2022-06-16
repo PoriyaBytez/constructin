@@ -42,7 +42,15 @@ dependencies:
   firebase_messaging: ^11.2.15
   firebase_core: ^1.15.0
   alt_sms_autofill: ^1.0.0
-  google_fonts: ^2.3.2
+  flutter_bloc: ^8.0.1
+  equatable: ^2.0.3
+  dio: ^4.0.6
+  shared_preferences: ^2.0.13
+  percent_indicator: ^4.2.0
+  flutter_contacts: ^1.1.4
+  url_launcher: ^6.1.2
+  image_picker: ^0.8.5+3
+
 
 dev_dependencies:
   flutter_test:
@@ -83,7 +91,7 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: gilroy
+    - family: Gilroy
       fonts:
         - asset: assets/fonts/gilroy/Gilroy-Bold.ttf
           weight: 700
@@ -95,6 +103,7 @@ flutter:
           weight: 500
         - asset: assets/fonts/gilroy/Gilroy-SemiBold.ttf
           weight: 600
+
   # fonts:
   #   - family: Schyler
   #     fonts:

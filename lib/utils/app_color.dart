@@ -1,17 +1,40 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:ui';
 
 class AppColor {
   static const Color mainColor = Color(0xffE1AB3F);
   static const Color black = Color(0xff000000);
   static const Color white = Color(0xffffffff);
+  static const Color white1 = Color(0xffFAFAFA);
+  static const Color bg = Color(0xffE5E5E5);
   static const Color white2 = Color(0xdac6c5c5);
   static const Color white3 = Color(0xffC0C0C0);
   static const Color gray = Color(0xcb8a8a8a);
   static const Color gray1 = Color(0xffd2d0d0);
+  static const Color gray2 = Color(0xffF1F1F1);
+  static const Color gray3 = Color(0xffF4F4F4);
   static const Color otpBox = Color(0xffC4C4C4);
   static const Color red = Color(0xffEB3643);
+  static const Color red1 = Color(0xffD42626);
   static const Color textColor = Color(0xff011240);
   static const Color textColor1 = Color(0xff49454F);
+  static const Color textColor2 = Color(0xff502E00);
+  static const Color textColor3 = Color(0xff042949);
+  static const Color textColor5 = Color(0xff422600);
+  static const Color textColor4 = Color(0xff4A4A4A);
+  static const Color textColor6 = Color(0xff856E4F);
+  static const Color textColor7 = Color(0xff898989);
+  static const Color textColor8 = Color(0xff777777);
   static const Color hintText = Color(0xff8E8E8E);
   static const Color textFormFieldBg = Color(0xffF5FAFF);
+  static const Color cBg = Color(0xffFEF9F2);
+  static const Color cBg1 = Color(0xffEDE7D4);
+  static const Color floatBg1 = Color(0xffD9E8FF);
+  static const Color btnUpdateBg = Color(0xffFDEDD6);
+  static const Color dotColor = Color(0xff085EA8);
+  static const Color progressColor = Color(0xffECECEC);
+  static const Color progressPercent = Color(0xff231B00);
+  static const Color arrowBackColor = Color(0xffC7C7C7);
+  static const Color green1 = Color(0xffE7FFD0);
+  static const Color green = Color(0xff46820D);
+  static const Color divider = Color(0xff794024);
 }

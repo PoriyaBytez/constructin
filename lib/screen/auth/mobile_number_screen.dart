@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:alt_sms_autofill/alt_sms_autofill.dart';
 import 'package:constructin/utils/app_asset.dart';
@@ -9,13 +11,20 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 
+import '../../bloc/login_bloc/login_bloc.dart';
+import '../../bloc/login_bloc/login_event.dart';
+import '../../bloc/login_bloc/login_state.dart';
 import '../../helper/route_helper.dart';
+import '../../utils/api_services.dart';
 import '../../utils/app_dimens.dart';
 import '../../utils/app_fonts.dart';
 import '../../utils/app_string.dart';
+import '../../utils/shared_preferences/preferences_key.dart';
+import '../../utils/shared_preferences/preferences_manager.dart';
 import '../../utils/toasts.dart';
 
 class MobileNumberScreen extends StatefulWidget {
@@ -32,7 +41,13 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
 
   bool varification = false;
   String? code = "+91";
+  String? code1 = "91";
+  int? type = 1;
+  String? deviceId;
+
   String verificationIdReceiver = "";
+
+  LoginBloc loginBloc = LoginBloc();
 
   /// OTP Widget
   TextEditingController oneController = TextEditingController();
@@ -56,14 +71,54 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   bool isLoading = false;
 
   @override
+  void initState() {
+    getDevices();
+    setState(() {
+      deviceId = PreferencesManager.getString(
+        PreferencesKey.fcmToken,
+      );
+    });
+    loginBloc = BlocProvider.of<LoginBloc>(context);
+    super.initState();
+  }
+
+  getDevices() {
+    if (Platform.isIOS) {
+      type = 2;
+    } else {
+      type = 1;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: SizedBox(
-            height: 96.h,
-            width: double.infinity,
-            child: varification ? otpScreen() : getOtp(),
+        body: BlocListener<LoginBloc, LoginState>(
+          listener: (context, state) {
+            if (state is LoginLoading) {
+            } else if (state is LoginSuccess) {
+              setState(() async {
+                PreferencesManager.setString(
+                    PreferencesKey.userModel, jsonEncode(state.userModel));
+                var projectModel = await ApiServices.getProjectList();
+                if (projectModel.data!.isEmpty) {
+                  print("home");
+                  Get.offAndToNamed(RouteHelper.home);
+                } else {
+                  print("projectList");
+                  Get.offAndToNamed(RouteHelper.projectList);
+                }
+              });
+            }
+          },
+          child: SingleChildScrollView(
+            child: SizedBox(
+              height: 96.h,
+              width: double.infinity,
+              // child: otpScreen() ,
+              child: varification ? otpScreen() : getOtp(),
+            ),
           ),
         ),
       ),
@@ -131,9 +186,12 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                             controller: oneController,
                             focusNode: oneFocusNode,
                             textInputAction: TextInputAction.next,
-                            onFieldSubmitted: (term) {
-                              oneFocusNode.unfocus();
-                              FocusScope.of(context).requestFocus(twoFocusNode);
+                            onChanged: (value) {
+                              if (value.length == 1) {
+                                setState(() {
+                                  FocusScope.of(context).nextFocus();
+                                });
+                              }
                             },
                           ),
                           otpWidget(
@@ -143,15 +201,9 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                             onChanged: (value) {
                               if (value.length == 1) {
                                 setState(() {
-                                  FocusScope.of(context)
-                                      .requestFocus(threeFocusNode);
+                                  FocusScope.of(context).nextFocus();
                                 });
                               }
-                            },
-                            onFieldSubmitted: (term) {
-                              twoFocusNode.unfocus();
-                              FocusScope.of(context)
-                                  .requestFocus(threeFocusNode);
                             },
                           ),
                           otpWidget(
@@ -166,11 +218,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                 });
                               }
                             },
-                            onFieldSubmitted: (term) {
-                              threeFocusNode.unfocus();
-                              FocusScope.of(context)
-                                  .requestFocus(fortFocusNode);
-                            },
                           ),
                           otpWidget(
                             controller: fortController,
@@ -184,11 +231,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                 });
                               }
                             },
-                            onFieldSubmitted: (term) {
-                              fortFocusNode.unfocus();
-                              FocusScope.of(context)
-                                  .requestFocus(fiveFocusNode);
-                            },
                           ),
                           otpWidget(
                             controller: fiveController,
@@ -201,10 +243,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                                       .requestFocus(sixFocusNode);
                                 });
                               }
-                            },
-                            onFieldSubmitted: (term) {
-                              fiveFocusNode.unfocus();
-                              FocusScope.of(context).requestFocus(sixFocusNode);
                             },
                           ),
                           otpWidget(
@@ -233,12 +271,14 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            '$secondsRemaining secs.',
-                            style: Utils.regularTextStyle(
-                                color: AppColor.textColor,
-                                fontSize: AppDimens.large_font),
-                          ),
+                          enableResend == false
+                              ? Text(
+                                  '$secondsRemaining secs.',
+                                  style: Utils.regularTextStyle(
+                                      color: AppColor.textColor,
+                                      fontSize: AppDimens.large_font),
+                                )
+                              : Container(),
                           enableResend
                               ? InkWell(
                                   onTap: () {
@@ -259,25 +299,27 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       height: 5.w,
                     ),
                     Spacer(),
-                    Padding(
-                      padding:
-                          EdgeInsets.only(left: 5.w, right: 5.w, bottom: 15.w),
-                      child: commandButton(
-                          name: "Verify",
-                          bg: AppColor.mainColor,
-                          onPress: () {
-                            if (oneController.text.isEmpty) {
-                              Toasts.showToast("Please enter OTP");
-                            }
-                            if (oneController.text.isNotEmpty) {
-                              setState(() {
-                                isLoading = true;
-                              });
-                              verifyOTP();
-                            }
-                          },
-                          strColor: AppColor.white),
-                    ),
+                    enableResend
+                        ? Container()
+                        : Padding(
+                            padding: EdgeInsets.only(
+                                left: 5.w, right: 5.w, bottom: 15.w),
+                            child: commandButton(
+                                name: "Verify",
+                                bg: AppColor.mainColor,
+                                onPress: () {
+                                  if (oneController.text.isEmpty) {
+                                    Toasts.showToast("Please enter OTP");
+                                  }
+                                  if (oneController.text.isNotEmpty) {
+                                    setState(() {
+                                      isLoading = true;
+                                    });
+                                    verifyOTP();
+                                  }
+                                },
+                                strColor: AppColor.white),
+                          ),
                   ],
                 ),
               ),
@@ -285,7 +327,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           ),
         ),
         isLoading
-            ? Container(
+            ? SizedBox(
                 height: 100.h,
                 width: 100.w,
                 child: Center(
@@ -379,9 +421,11 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           textStyle: Utils.regularTextStyle(
                               fontSize: AppDimens.large_font),
                           onChanged: (value) {
-                            print("contry Code ${value.code}");
+                            print("contry Code ${value.dialCode}");
                             setState(() {
-                              code = value.code;
+                              code = value.dialCode;
+                              code1 = value.dialCode?.replaceFirst("+", "");
+                              print("code $code");
                             });
                           },
                           // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
@@ -407,6 +451,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           style: Utils.regularTextStyle(
                               fontSize: AppDimens.large_font),
                           controller: numberController,
+                          keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             hintText: "Enter Mobile Number",
                             hintStyle:
@@ -488,7 +533,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           ),
         ),
         isLoading
-            ? Container(
+            ? SizedBox(
                 height: 100.h,
                 width: 100.w,
                 child: Center(
@@ -504,32 +549,45 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
 
   Future<void> verifyPhoneNumber(BuildContext context) async {
     print("no : $code${numberController.text}");
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: "$code${numberController.text}",
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // await FirebaseAuth.instance.signInWithCredential(credential);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        if (e.code == 'invalid-phone-number') {
-          Toasts.showToast('phone number is not valid.');
-          print('The provided phone number is not valid.');
-        }
-      },
-      codeSent: (String verificationId, int? resendToken) async {
-        // Toasts.showToast(verificationId.toString());
-        setState(() {
-          varification = true;
-          isLoading = false;
-          verificationIdReceiver = verificationId;
-          startTimer();
-        });
-        await initSmsListener();
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
-        // Toasts.showToast(verificationId.toString());
-      },
-    );
+
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: "$code${numberController.text}",
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          // await FirebaseAuth.instance.signInWithCredential(credential);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          if (e.code == 'invalid-phone-number') {
+            setState(() {
+              isLoading = false;
+            });
+            Toasts.showToast('phone number is not valid.');
+            print('The provided phone number is not valid.');
+          } else {
+            setState(() {
+              isLoading = false;
+            });
+            Toasts.showToast('Re-try after same time.');
+          }
+        },
+        codeSent: (String verificationId, int? resendToken) async {
+          // Toasts.showToast(verificationId.toString());
+          setState(() {
+            varification = true;
+            isLoading = false;
+            verificationIdReceiver = verificationId;
+            startTimer();
+          });
+          await initSmsListener();
+        },
+        codeAutoRetrievalTimeout: (String verificationId) {
+          print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
+          // Toasts.showToast(verificationId.toString());
+        },
+      );
+    } catch (e) {
+      print("error : ${e.toString()}");
+    }
   }
 
   Future<void> initSmsListener() async {
@@ -565,15 +623,26 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
     });
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: verificationIdReceiver, smsCode: smsCode);
-    await FirebaseAuth.instance.signInWithCredential(credential).then((value) {
-      print("value ${value.user}");
-      print("value ${value.user?.phoneNumber}");
-      print("value ${value.user?.uid}");
+
+    try {
+      await FirebaseAuth.instance
+          .signInWithCredential(credential)
+          .then((value) {
+        setState(() {
+          isLoading = false;
+        });
+        loginBloc.add(LoginButtonPressed(
+            countryCode: code1,
+            mobile: numberController.text,
+            type: type,
+            deviceId: deviceId));
+      });
+    } catch (e) {
       setState(() {
         isLoading = false;
       });
-      Get.toNamed(RouteHelper.home);
-    });
+      Toasts.showToast("The code has expired. Please re-send code");
+    }
   }
 
   startTimer() {
@@ -584,6 +653,12 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
         });
       } else {
         setState(() {
+          oneController.text = "";
+          twoController.text = "";
+          threeController.clear();
+          fortController.clear();
+          fiveController.clear();
+          sixController.clear();
           enableResend = true;
         });
       }
@@ -592,6 +667,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
 
   void _resendCode() {
     setState(() {
+      timer.cancel();
       secondsRemaining = 30;
       enableResend = false;
       verifyPhoneNumber(context);
