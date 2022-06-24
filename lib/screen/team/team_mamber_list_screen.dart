@@ -164,8 +164,6 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                       bg: AppColor.mainColor,
                       onPress: () {
                         addMember();
-                        // Get.toNamed(RouteHelper.addTeamMember,
-                        //     arguments: projectID);
                       },
                       strColor: AppColor.white),
                 ),
@@ -215,10 +213,10 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                                   color: AppColor.gray,
                                 )
                               : CircleAvatar(
-                            radius: 200,
-                                backgroundImage: NetworkImage(
-                                    teamDataList![index].teamDetails?.image),
-                              ),
+                                  radius: 200,
+                                  backgroundImage: NetworkImage(
+                                      teamDataList![index].teamDetails?.image),
+                                ),
                         ),
                         SizedBox(
                           width: 2.w,

@@ -1,17 +1,26 @@
+import 'dart:io';
+
+import 'package:constructin/screen/task/full_screen_image.dart';
 import 'package:constructin/screen/task/task_details_screen.dart';
+import 'package:constructin/screen/task/task_issue_screen.dart';
 import 'package:constructin/utils/app_asset.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
+import 'package:constructin/utils/toasts.dart';
 import 'package:constructin/utils/unil.dart';
+import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../bloc/task_update_bloc/task_update_bloc.dart';
 import '../../model/task_details_model.dart';
+import '../../model/task_image_model.dart';
 import '../../model/task_model.dart';
 import '../../utils/api_services.dart';
 import '../../utils/app_string.dart';
@@ -42,6 +51,8 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   var formatter;
   List<String> unitList = [];
 
+  List<TaskImageData> taskImageList = [];
+
   @override
   void initState() {
     taskUpdateBloc = BlocProvider.of<TaskUpdateBloc>(context);
@@ -57,6 +68,11 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
     currentDate = formatter.format(now);
     taskUpdateBloc.add(
         TaskUpdatePressed(taskId: taskDetailsList.id ?? 0, date: currentDate));
+    ApiServices.getTaskImageList(taskDetailsList.id!).then((value) {
+      setState(() {
+        taskImageList = value.data!;
+      });
+    });
     super.initState();
   }
 
@@ -134,7 +150,8 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    "Task Details- Excavation",
+                                    "Task Details- ${taskDetailsList.title}",
+                                    overflow: TextOverflow.clip,
                                     style: Utils.regularTextStyle(
                                         fontSize: AppDimens.medium_font,
                                         color: AppColor.textColor3),
@@ -153,8 +170,11 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                               taskDetailsList.endDate ?? "",
                                           unitValue:
                                               taskDetailsList.unitId ?? 0,
-                                          totalWork: taskDetailsList.totalWork
-                                              .toString(),
+                                          totalWork:
+                                              taskDetailsList.totalWork == null
+                                                  ? "null"
+                                                  : taskDetailsList.totalWork
+                                                      .toString(),
                                         );
                                       })).then((value) {
                                         if (value != null) {
@@ -203,7 +223,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                 ],
                               ),
                               SizedBox(
-                                height: 7.w,
+                                height: 4.w,
                               ),
                               Container(
                                 decoration: BoxDecoration(
@@ -344,8 +364,8 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                               ],
                                             ),
                                             Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 3.w, top: 3.w),
+                                              padding:
+                                                  EdgeInsets.only(left: 3.w),
                                               child: Container(
                                                 width: 57.w,
                                                 height: 8.w,
@@ -443,17 +463,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                         CrossAxisAlignment
                                                             .start,
                                                     children: [
-                                                      // Padding(
-                                                      //   padding: EdgeInsets.only(
-                                                      //       left: 3.w, top: 4.w),
-                                                      //   child: Text(
-                                                      //     "Skilled",
-                                                      //     style:
-                                                      //         Utils.regularTextStyle(
-                                                      //             color: AppColor
-                                                      //                 .textColor1),
-                                                      //   ),
-                                                      // ),
                                                       SizedBox(
                                                         width: 28.w,
                                                         child:
@@ -599,26 +608,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                       ),
                                                     ],
                                                   ),
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 3.w, top: 3.w),
-                                              child: Text(
-                                                "Add Photos",
-                                                style: Utils.regularTextStyle(
-                                                    fontSize:
-                                                        AppDimens.default_font,
-                                                    color: AppColor.dotColor),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding: EdgeInsets.only(
-                                                  left: 3.w, top: 3.w),
-                                              child: SizedBox(
-                                                  height: 10.w,
-                                                  width: 10.w,
-                                                  child: Image.asset(ImageAsset
-                                                      .iconSelectPic)),
-                                            )
+                                            imageList("Add Photo"),
                                           ],
                                         ),
                                       ),
@@ -629,11 +619,21 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                               SizedBox(
                                 height: 3.w,
                               ),
-                              Text(
-                                "+ Add issues",
-                                style: Utils.regularTextStyle(
-                                    fontSize: AppDimens.large_font,
-                                    color: AppColor.textColor3),
+                              InkWell(
+                                onTap: () {
+                                  Navigator.push(context,
+                                      MaterialPageRoute(builder: (_) {
+                                    return TaskIssueScreen(
+                                      taskDetailsList: taskDetailsList,
+                                    );
+                                  }));
+                                },
+                                child: Text(
+                                  "+ Add issues",
+                                  style: Utils.regularTextStyle(
+                                      fontSize: AppDimens.large_font,
+                                      color: AppColor.textColor3),
+                                ),
                               ),
                               SizedBox(
                                 height: 3.w,
@@ -831,30 +831,38 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                               ),
                               InkWell(
                                   onTap: () {
-                                    TaskDetailsData data = TaskDetailsData(
-                                        projectId: taskDetailsList.projectId,
-                                        taskId: taskDetailsList.id,
-                                        todayProgress: quantityController.text,
-                                        attendees: radioValue.toString(),
-                                        noOfGang: noGangController.text,
-                                        attendeesSkilled:
-                                            skilledController.text,
-                                        attendeesSemiSkilled:
-                                            semiSkilledController.text,
-                                        attendeesUnskilled:
-                                            unSkilledController.text,
-                                        remark: "test",
-                                        date: currentDate);
-                                    ApiServices.postProgress(data)
-                                        .then((value) {
-                                      setState(() {
-                                        TaskDetailsModel data = value;
-                                        taskDetailsList.workCompleted =
-                                            data.data?.workCompleted;
-                                        taskDetailsList.taskMembers =
-                                            data.data?.taskMembers;
+                                    print(
+                                        "dsadasd ${taskDetailsList.totalWork}");
+                                    if (taskDetailsList.totalWork != null) {
+                                      TaskDetailsData data = TaskDetailsData(
+                                          projectId: taskDetailsList.projectId,
+                                          taskId: taskDetailsList.id,
+                                          todayProgress:
+                                              quantityController.text,
+                                          attendees: radioValue.toString(),
+                                          noOfGang: noGangController.text,
+                                          attendeesSkilled:
+                                              skilledController.text,
+                                          attendeesSemiSkilled:
+                                              semiSkilledController.text,
+                                          attendeesUnskilled:
+                                              unSkilledController.text,
+                                          remark: "test",
+                                          date: currentDate);
+                                      ApiServices.postProgress(data)
+                                          .then((value) {
+                                        setState(() {
+                                          TaskDetailsModel data = value;
+                                          taskDetailsList.workCompleted =
+                                              data.data?.workCompleted;
+                                          taskDetailsList.taskMembers =
+                                              data.data?.taskMembers;
+                                        });
                                       });
-                                    });
+                                    } else {
+                                      Toasts.showToast(
+                                          "Please update ${taskDetailsList.title} task details.");
+                                    }
                                   },
                                   child: Image.asset(ImageAsset.btnUpdateSave))
                             ],
@@ -879,6 +887,139 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
     );
   }
 
+  openCamera(ImageSource source) async {
+    XFile? pickedFile = (await ImagePicker().pickImage(
+        source: source, maxWidth: 1000, maxHeight: 1000, imageQuality: 10));
+    List<MultipartFile> list = [];
+    String fileName = File(pickedFile!.path).path.split('/').last;
+    list.add(await MultipartFile.fromFile(File(pickedFile.path).path,
+        filename: fileName));
+
+    ApiServices.postTaskImage(list, taskDetailsList.id,
+            taskDetailsList.projectId, taskDetailsList.registerUserId)
+        .then((value) {
+      setState(() {
+        taskImageList.add(value.data![0]);
+        Navigator.pop(context);
+      });
+    });
+  }
+
+  getFilePicker() async {
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    print("file  frile  ${result?.files.length}");
+    List<MultipartFile> list = [];
+    for (int i = 0; i < result!.files.length; i++) {
+      String fileName = File(result.files[i].path!).path.split('/').last;
+      print(" name $fileName");
+      list.add(await MultipartFile.fromFile(File(result.files[i].path!).path,
+          filename: fileName));
+    }
+    ApiServices.postTaskImage(list, taskDetailsList.id,
+            taskDetailsList.projectId, taskDetailsList.registerUserId)
+        .then((value) {
+      setState(() {
+        print("value File :${value.data!.length}");
+        for (int i = 0; i < value.data!.length; i++) {
+          taskImageList.add(value.data![i]);
+        }
+        Navigator.pop(context);
+      });
+    });
+  }
+
+  Widget imageList(String name) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: 3.w,
+          ),
+          child: Text(
+            name,
+            style: Utils.regularTextStyle(
+                fontSize: AppDimens.default_font, color: AppColor.dotColor),
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.only(left: 3.w, top: 3.w),
+          child: Row(
+            children: [
+              InkWell(
+                onTap: () {
+                  if (taskDetailsList.totalWork != null) {
+                    Utils.pickImageDialog(context, () {
+                      getFilePicker();
+                    }, () {
+                      openCamera(ImageSource.camera);
+                    });
+                  } else {
+                    Toasts.showToast(
+                        "Please update ${taskDetailsList.title} task details.");
+                  }
+                },
+                child: SizedBox(
+                    height: 10.w,
+                    width: 10.w,
+                    child: Image.asset(ImageAsset.iconSelectPic)),
+              ),
+              Expanded(
+                child: Container(
+                  height: 10.w,
+                  child: ListView.builder(
+                      padding: EdgeInsets.only(right: 2.w, left: 2.w),
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: taskImageList.length,
+                      itemBuilder: (context, index) {
+                        final path =
+                            taskImageList[index].image?.split(".").last;
+                        print(path?.split(".").last);
+                        print("extenstion $path");
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (_) {
+                              return FullScreen(
+                                  url: taskImageList[index].image!,
+                                  extention: path!);
+                            }));
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.only(right: 2.w),
+                            child: path != "pdf"
+                                ? Container(
+                                    height: 10.w,
+                                    width: 10.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(5)),
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                                taskImageList[index].image ??
+                                                    ""),
+                                            fit: BoxFit.cover)),
+                                  )
+                                : Icon(
+                                    Icons.picture_as_pdf_outlined,
+                                    size: 10.w,
+                                  ),
+                          ),
+                        );
+                      }),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 2.w,
+        )
+      ],
+    );
+  }
+
   Widget firstRow(String title, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -886,13 +1027,14 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
         Text(
           title,
           style: Utils.regularTextStyle(
-              fontSize: AppDimens.default_font, color: AppColor.textColor7),
+              fontSize: AppDimens.indicator_size, color: AppColor.textColor7),
         ),
         SizedBox(
           height: 2.w,
         ),
         Text(
           value,
+          overflow: TextOverflow.clip,
           style: Utils.regularTextStyle(fontSize: 2.5.w),
         ),
       ],

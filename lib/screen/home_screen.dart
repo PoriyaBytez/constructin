@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:constructin/helper/route_helper.dart';
+import 'package:constructin/screen/profile_screen.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
 import 'package:constructin/utils/app_string.dart';
@@ -7,7 +10,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';
 
+import '../model/user_model.dart';
 import '../utils/app_asset.dart';
+import '../utils/shared_preferences/preferences_key.dart';
+import '../utils/shared_preferences/preferences_manager.dart';
 import '../widget/comman_widget.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,6 +24,18 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String imageUrl = '';
+  late UserModel userModel;
+
+  @override
+  void initState() {
+    String body = PreferencesManager.getString(PreferencesKey.userModel);
+    userModel = UserModel.fromJson(jsonDecode(body));
+    imageUrl = userModel.data?.image ?? '';
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -43,25 +61,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          height: 10.w,
-                          width: 10.w,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(ImageAsset.ellipse))),
-                        ),
-                        SizedBox(
-                          width: 5.w,
-                        ),
-                        Text(
-                          "My Projects",
-                          style: Utils.regularTextStyle(
-                              color: AppColor.textColor,
-                              fontSize: AppDimens.large_font),
-                        ),
-                      ],
+                    InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) {
+                          return ProfileScreen();
+                        })).then((value) {
+                          setState(() {
+                            imageUrl = value;
+                          });
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Center(
+                            child: Container(
+                                height: 10.w,
+                                width: 10.w,
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: AppColor.black, width: 1)),
+                                child: imageUrl == ""
+                                    ? Icon(
+                                        Icons.person,
+                                        size: 8.w,
+                                      )
+                                    : CircleAvatar(
+                                        radius: 200.0,
+                                        backgroundImage: NetworkImage(imageUrl),
+                                      )),
+                          ),
+                          SizedBox(
+                            width: 5.w,
+                          ),
+                          Text(
+                            "My Projects",
+                            style: Utils.regularTextStyle(
+                                color: AppColor.textColor,
+                                fontSize: AppDimens.large_font),
+                          ),
+                        ],
+                      ),
                     ),
                     Padding(
                       padding:

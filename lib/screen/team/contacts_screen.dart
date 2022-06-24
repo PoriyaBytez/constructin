@@ -230,27 +230,29 @@ class _ContactScreenState extends State<ContactScreen> {
                       ApiServices.postAddMember(nameController.text, code1!,
                               numberController.text, widget.projectID)
                           .then((value) {
-                        setState(() {
-                          TeamData data = TeamData(
-                            teamDetails: value.teamDetails,
-                            rights: value.rights,
-                            registerUserId: value.registerUserId,
-                            projectId: value.projectId,
-                            projectRights: value.projectRights,
-                            joined: value.joined,
-                          );
-                          if (widget.flag == 1) {
-                            Navigator.pop(context, value);
-                          } else {
-                            Navigator.pushReplacement(context,
-                                MaterialPageRoute(builder: (_) {
-                              return TeamMemberListScreen(
-                                teamData: data,
-                                projectID: widget.projectID,
-                              );
-                            }));
-                          }
-                        });
+                        if (value != false) {
+                          setState(() {
+                            TeamData data = TeamData(
+                              teamDetails: value.teamDetails,
+                              rights: value.rights,
+                              registerUserId: value.registerUserId,
+                              projectId: value.projectId,
+                              projectRights: value.projectRights,
+                              joined: value.joined,
+                            );
+                            if (widget.flag == 1) {
+                              Navigator.pop(context, value);
+                            } else {
+                              Navigator.pushReplacement(context,
+                                  MaterialPageRoute(builder: (_) {
+                                return TeamMemberListScreen(
+                                  teamData: data,
+                                  projectID: widget.projectID,
+                                );
+                              }));
+                            }
+                          });
+                        }
                       });
                     } else {
                       Toasts.showToast("Please select number.");

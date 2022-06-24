@@ -55,10 +55,15 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   UnitModel? unitModel;
   String? unitListValue;
   List<String> unitList = [];
-  int selectUnit = 1;
-  List<CustomTeamList> teamList1 = [];
+  int selectUnit = 0;
+  List<CustomTeamList> allTeamMember = [];
   List<CustomTeamList> teamList = [];
   List<TeamDetails> assignTeamMember = [];
+
+  bool selectStartDate = false;
+  bool selectEndDate = false;
+  bool selectTotal = false;
+  bool isUnit = false;
 
   @override
   void initState() {
@@ -80,11 +85,12 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   getTeamList() async {
-    await ApiServices.getTeamMemberList(1, widget.projectID).then((value) {
+    await ApiServices.getTeamMemberList(widget.projectID).then((value) {
       setState(() {
-        teamList1 = value.data!
+        allTeamMember = value.data!
             .map((contact) => CustomTeamList(teamDataList: contact))
             .toList();
+
         if (value.data != null) {
           for (int i = 0; i < value.data!.length; i++) {
             print(" task Right ${value.data![i].taskRight}");
@@ -105,11 +111,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   initValue() {
-    print("startDate ${widget.startDate}");
-    print("unitValue ${widget.unitValue}");
     startDateController.text = widget.startDate;
     endDateController.text = widget.endDate;
-    totalController.text = widget.totalWork;
+    totalController.text =
+        widget.totalWork == "null" ? '' : widget.totalWork.toString();
     if (widget.unitValue != 0) {
       unitListValue = unitList[widget.unitValue - 1];
     }
@@ -148,6 +153,22 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     });
   }
 
+  Future<String> selectDate(BuildContext context) async {
+    String formatted = "";
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: selectedDate,
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null && picked != selectedDate) {
+      setState(() {
+        final DateFormat formatter = DateFormat('yyyy-MM-dd');
+        formatted = formatter.format(picked);
+      });
+    }
+    return formatted;
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -172,7 +193,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                           height: 30.w,
                         ),
                         Text(
-                          "Task Details- Excavation",
+                          "Task Details- ${widget.taskDetailsList.title}",
+                          overflow: TextOverflow.clip,
                           style: Utils.regularTextStyle(
                               fontSize: AppDimens.large_font,
                               color: AppColor.textColor3),
@@ -221,6 +243,41 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                 ),
                               ),
                             ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            selectStartDate
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 5.5.w,
+                                      ),
+                                      child: Text(
+                                        "Please select start date",
+                                        style: TextStyle(
+                                            color: AppColor.red1,
+                                            fontSize: 12.0),
+                                      ),
+                                    ),
+                                  )
+                                : Expanded(child: Container()),
+                            selectEndDate
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 5.5.w,
+                                      ),
+                                      child: Text(
+                                        "Please select end date",
+                                        style: TextStyle(
+                                            color: AppColor.red1,
+                                            fontSize: 12.0),
+                                      ),
+                                    ),
+                                  )
+                                : Expanded(child: Container())
                           ],
                         ),
                         Row(
@@ -298,13 +355,48 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             ),
                           ],
                         ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            selectTotal
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 5.5.w,
+                                      ),
+                                      child: Text(
+                                        "Please enter total work",
+                                        style: TextStyle(
+                                            color: AppColor.red1,
+                                            fontSize: 12.0),
+                                      ),
+                                    ),
+                                  )
+                                : Expanded(child: Container()),
+                            isUnit
+                                ? Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(
+                                        left: 5.5.w,
+                                      ),
+                                      child: Text(
+                                        "Please select unit",
+                                        style: TextStyle(
+                                            color: AppColor.red1,
+                                            fontSize: 12.0),
+                                      ),
+                                    ),
+                                  )
+                                : Expanded(child: Container())
+                          ],
+                        ),
                         SizedBox(
                           height: 10.w,
                         ),
                         InkWell(
                           onTap: () {
-                            isAdd();
                             assignTask();
+                            assignTaskBottomSheet();
                           },
                           child: Container(
                             height: 10.w,
@@ -323,6 +415,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                           child: ListView.builder(
                               itemCount: assignTeamMember.length,
                               shrinkWrap: true,
+                              reverse: true,
                               itemBuilder: (context, index) {
                                 return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -358,10 +451,23 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                           SizedBox(
                                             width: 5.w,
                                           ),
-                                          Text(
-                                            assignTeamMember[index].name ?? "",
-                                            style: Utils.regularTextStyle(
-                                                color: AppColor.black),
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                assignTeamMember[index].name ?? "-",
+                                                overflow: TextOverflow.clip,
+                                                style: Utils.regularTextStyle(
+                                                    color: AppColor.black),
+                                              ),
+                                              SizedBox(height: 1.w,),
+                                              Text(
+                                                assignTeamMember[index].mobile ?? "-",
+                                                overflow: TextOverflow.clip,
+                                                style: Utils.regularTextStyle(
+                                                    color: AppColor.gray),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
@@ -398,17 +504,59 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         ),
                         InkWell(
                             onTap: () {
-                              ApiServices.updateTask(
-                                      widget.id,
-                                      startDateController.text,
-                                      endDateController.text,
-                                      int.parse(totalController.text),
-                                      selectUnit)
-                                  .then((value) {
-                                // print("value mm ${value.endDate}");
-                                Navigator.pop(context, value);
-                                getTeamList();
-                              });
+                              if (startDateController.text.isEmpty) {
+                                setState(() {
+                                  selectStartDate = true;
+                                });
+                              } else {
+                                setState(() {
+                                  selectStartDate = false;
+                                });
+                              }
+                              if (endDateController.text.isEmpty) {
+                                setState(() {
+                                  selectEndDate = true;
+                                });
+                              } else {
+                                setState(() {
+                                  selectEndDate = false;
+                                });
+                              }
+                              if (totalController.text.isEmpty) {
+                                setState(() {
+                                  selectTotal = true;
+                                });
+                              } else {
+                                setState(() {
+                                  selectTotal = false;
+                                });
+                              }
+                              if (selectUnit == 0) {
+                                setState(() {
+                                  isUnit = true;
+                                });
+                              } else {
+                                setState(() {
+                                  isUnit = false;
+                                });
+                              }
+                              if (startDateController.text.isEmpty &&
+                                  endDateController.text.isEmpty &&
+                                  totalController.text.isEmpty &&
+                                  selectUnit == 0) {
+                              } else {
+                                ApiServices.updateTask(
+                                        widget.id,
+                                        startDateController.text,
+                                        endDateController.text,
+                                        int.parse(totalController.text),
+                                        selectUnit)
+                                    .then((value) {
+                                  // print("value mm ${value.endDate}");
+                                  Navigator.pop(context, value);
+                                  getTeamList();
+                                });
+                              }
                             },
                             child: Image.asset(ImageAsset.btnSave1))
                       ],
@@ -423,49 +571,34 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
-  isAdd() {
+  assignTask() {
     if (assignTeamMember.isNotEmpty) {
       teamList.clear();
-      for (int j = 0; j < teamList1.length; j++) {
+      for (int j = 0; j < allTeamMember.length; j++) {
         bool isCheck = false;
         CustomTeamList? data;
         for (int k = 0; k < assignTeamMember.length; k++) {
-          // print(" id j ${teamList1[j].teamDataList.teamDetails?.id}");
+          // print(" id j ${AllTeamMember[j].teamDataList.teamDetails?.id}");
           // print("id k ${assignTeamMember[k].id}");
           if (assignTeamMember[k].id.toString().trim() ==
-              teamList1[j].teamDataList.teamDetails?.id.toString().trim()) {
+              allTeamMember[j].teamDataList.teamDetails?.id.toString().trim()) {
             // print(" ifff :  ");
             isCheck = true;
             break;
           }
-          data = teamList1[j];
+          data = allTeamMember[j];
         }
         if (isCheck == false) {
           teamList.add(data!);
         }
       }
     } else {
-      teamList.addAll(teamList1);
+      teamList.clear();
+      teamList.addAll(allTeamMember);
     }
   }
 
-  Future<String> selectDate(BuildContext context) async {
-    String formatted = "";
-    final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: selectedDate,
-        firstDate: DateTime(2015, 8),
-        lastDate: DateTime(2101));
-    if (picked != null && picked != selectedDate) {
-      setState(() {
-        final DateFormat formatter = DateFormat('yyyy-MM-dd');
-        formatted = formatter.format(picked);
-      });
-    }
-    return formatted;
-  }
-
-  assignTask() {
+  assignTaskBottomSheet() {
     showModalBottomSheet(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(5.0),
@@ -490,14 +623,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ),
                       Row(
                         children: [
-                          // Icon(
-                          //   Icons.search,
-                          //   size: 25,
-                          //   color: AppColor.gray,
-                          // ),
-                          // SizedBox(
-                          //   width: 3.w,
-                          // ),
                           InkWell(
                             onTap: () {
                               Navigator.pop(context);
@@ -628,6 +753,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                                       .teamDetails
                                                       ?.name ??
                                                   "-",
+                                              overflow: TextOverflow.clip,
                                               style: Utils.regularTextStyle(
                                                   color: AppColor.black),
                                             ),
@@ -641,7 +767,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                                       ?.mobile ??
                                                   "",
                                               style: Utils.regularTextStyle(
-                                                  color: AppColor.black),
+                                                  color: AppColor.gray),
                                             ),
                                           ],
                                         ),
@@ -682,20 +808,21 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         if (currentIndexTeam == null) {
                           Toasts.showToast("please select member");
                         } else {
-                          ApiServices.postTaskRight(
-                              widget.id,
-                              widget.projectID,
-                              teamList[currentIndexTeam ?? 0]
-                                      .teamDataList
-                                      .registerUserId ??
-                                  0);
                           setState(() {
+                            ApiServices.postTaskRight(
+                                widget.id,
+                                widget.projectID,
+                                teamList[currentIndexTeam ?? 0]
+                                        .teamDataList
+                                        .registerUserId ??
+                                    0);
+                            assignTeamMember.add(teamList[currentIndexTeam ?? 0]
+                                .teamDataList
+                                .teamDetails!);
                             teamList[currentIndexTeam ?? 0].isChecked = false;
                             currentIndexTeam = null;
+                            Navigator.pop(context);
                           });
-                          assignTeamMember.clear();
-                          Navigator.pop(context);
-                          getTeamList();
                         }
                       },
                       strColor: AppColor.white),
@@ -1075,9 +1202,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         c[index].contact.displayName[1].toUpperCase()),
                     style: TextStyle(color: Colors.white)),
               ),
-        title: Text(c[index].contact.displayName),
+        title: Text(c[index].contact.displayName,overflow: TextOverflow.clip,style: Utils.regularTextStyle(color: AppColor.black)),
         subtitle: c[index].contact.phones.isNotEmpty
-            ? Text(c[index].contact.phones[0].number)
+            ? Text(c[index].contact.phones[0].number,overflow: TextOverflow.clip,style: Utils.regularTextStyle(color: AppColor.gray))
             : Text(''),
         trailing: Checkbox(
             activeColor: AppColor.mainColor,

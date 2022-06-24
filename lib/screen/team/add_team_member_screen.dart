@@ -19,6 +19,7 @@ import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/unil.dart';
 import '../../widget/comman_widget.dart';
+import '../../widget/search_text_form_field.dart';
 
 class AddTeamMemberScreen extends StatefulWidget {
   int projectId;
@@ -48,6 +49,7 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
       GlobalKey<RefreshIndicatorState>();
   bool _isLoading = false;
   int? currentIndex;
+  int? currentIndexSearch;
   CustomContact? contactModel;
 
   @override
@@ -165,38 +167,12 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(4.w),
-                child: TextFormField(
-                  onChanged: onSearchTextChanged,
-                  controller: searchController,
-                  keyboardType: TextInputType.text,
-                  style: Utils.regularTextStyle(
-                      color: AppColor.textColor,
-                      fontSize: AppDimens.medium_font),
-                  decoration: InputDecoration(
-                      labelText: "Search Party",
-                      fillColor: AppColor.textFormFieldBg,
-                      filled: true,
-                      suffixIcon: Container(
-                          height: 2.w,
-                          width: 2.w,
-                          child: Padding(
-                            padding: EdgeInsets.all(3.w),
-                            child: Image.asset(ImageAsset.iconsSearch),
-                          )),
-                      enabledBorder: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: AppColor.textFormFieldBg),
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
-                      focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColor.mainColor),
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
-                      disabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColor.red),
-                          borderRadius: BorderRadius.all(Radius.circular(10)))),
-                ),
-              ),
+              SearchTextFormField(labelText: "Search Party",
+                  onChanged: (value) {
+                    onSearchTextChanged(value);
+                  },
+                  searchController
+                      :searchController),
               Center(
                 child: Text(
                   "OR",
@@ -228,14 +204,7 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                           projectID: projectID!,
                           flag: 0,
                         );
-                      })).then((value) {
-                        setState(() {
-                          print("value add mama ${value.toString()}");
-                          if (value != "") {
-                            teamDataList?.add(value);
-                          }
-                        });
-                      });
+                      }));
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -290,7 +259,7 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                                           i++) {
                                         if (index == i) {
                                           setState(() {
-                                            currentIndex = index;
+                                            currentIndexSearch = index;
                                             searchContactsList[index]
                                                 .isChecked = true;
                                           });
@@ -361,26 +330,30 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                       onPress: () {
                         searchController.text.isNotEmpty
                             ? ApiServices.postAddMember(
-                                    searchContactsList[currentIndex!]
+                                    searchContactsList[currentIndexSearch!]
                                         .contact
                                         .displayName,
                                     "91",
-                                    searchContactsList[currentIndex!]
+                                    searchContactsList[currentIndexSearch!]
                                         .contact
                                         .phones[0]
-                                        .number,
+                                        .number
+                                        .replaceAll(" ", ""),
                                     projectID)
                                 .then((value) {
                                 setState(() {
-                                  TeamData data = TeamData(
-                                    teamDetails: value.teamDetails,
-                                    rights: value.rights,
-                                    registerUserId: value.registerUserId,
-                                    projectId: value.projectId,
-                                    projectRights: value.projectRights,
-                                    joined: value.joined,
-                                  );
-                                  Navigator.pop(context, data);
+                                  if (value == false) {
+                                  } else {
+                                    TeamData data = TeamData(
+                                      teamDetails: value.teamDetails,
+                                      rights: value.rights,
+                                      registerUserId: value.registerUserId,
+                                      projectId: value.projectId,
+                                      projectRights: value.projectRights,
+                                      joined: value.joined,
+                                    );
+                                    Navigator.pop(context, data);
+                                  }
                                 });
                               })
                             : ApiServices.postAddMember(
@@ -391,19 +364,22 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                                     _uiCustomContacts[currentIndex!]
                                         .contact
                                         .phones[0]
-                                        .number.replaceFirst("+91", ""),
+                                        .number
+                                        .replaceFirst("+91", ""),
                                     projectID)
                                 .then((value) {
                                 setState(() {
-                                  TeamData data = TeamData(
-                                    teamDetails: value.teamDetails,
-                                    rights: value.rights,
-                                    registerUserId: value.registerUserId,
-                                    projectId: value.projectId,
-                                    projectRights: value.projectRights,
-                                    joined: value.joined,
-                                  );
-                                  Navigator.pop(context, data);
+                                  if (value != false) {
+                                    TeamData data = TeamData(
+                                      teamDetails: value.teamDetails,
+                                      rights: value.rights,
+                                      registerUserId: value.registerUserId,
+                                      projectId: value.projectId,
+                                      projectRights: value.projectRights,
+                                      joined: value.joined,
+                                    );
+                                    Navigator.pop(context, data);
+                                  }
                                 });
                               });
                       },
@@ -507,9 +483,13 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                       c[index].contact.displayName[1].toUpperCase()),
                   style: TextStyle(color: Colors.white)),
             ),
-      title: Text(c[index].contact.displayName),
+      title: Text(c[index].contact.displayName,
+          overflow: TextOverflow.clip,
+          style: Utils.regularTextStyle(color: AppColor.black)),
       subtitle: c[index].contact.phones.isNotEmpty
-          ? Text(c[index].contact.phones[0].number)
+          ? Text(c[index].contact.phones[0].number,
+          overflow: TextOverflow.clip,
+              style: Utils.regularTextStyle(color: AppColor.gray))
           : Text(''),
       trailing: Checkbox(
           activeColor: AppColor.mainColor,
@@ -530,32 +510,6 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
           }),
     );
   }
-
-// ListTile _buildListTile(CustomContact c) {
-//   Uint8List? image = c.contact.photo;
-//   return ListTile(
-//     leading: (c.contact.photo != null)
-//         ? CircleAvatar(backgroundImage: MemoryImage(image!))
-//         : CircleAvatar(
-//       child: Text(
-//           (c.contact.displayName[0] +
-//               c.contact.displayName[1].toUpperCase()),
-//           style: TextStyle(color: Colors.white)),
-//     ),
-//     title: Text(c.contact.displayName),
-//     subtitle: c.contact.phones.isNotEmpty
-//         ? Text(c.contact.phones[0].number)
-//         : Text(''),
-//     trailing: Checkbox(
-//         activeColor: AppColor.mainColor,
-//         value: c.isChecked,
-//         onChanged: (bool? value) {
-//           setState(() {
-//             c.isChecked = value!;
-//           });
-//         }),
-//   );
-// }
 
   onSearchTextChanged(String text) async {
     searchContactsList.clear();

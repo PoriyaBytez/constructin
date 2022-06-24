@@ -12,12 +12,12 @@ class ProjectModel {
     this.message,
   });
 
-  List<Datum>? data;
+  List<ProjectData>? data;
   bool? success;
   String? message;
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) => ProjectModel(
-        data: List<Datum>.from(json["data"].map((x) => Datum.fromJson(x))),
+        data: List<ProjectData>.from(json["data"].map((x) => ProjectData.fromJson(x))),
         success: json["success"],
         message: json["message"],
       );
@@ -29,8 +29,8 @@ class ProjectModel {
       };
 }
 
-class Datum {
-  Datum({
+class ProjectData {
+  ProjectData({
     this.id,
     this.registerUserId,
     this.projectId,
@@ -48,7 +48,7 @@ class Datum {
   int? registerUserId;
   int? projectId;
   int? addBy;
-  String? projectRights;
+  dynamic projectRights;
   dynamic taskRight;
   dynamic issuesRight;
   dynamic deletedAt;
@@ -56,7 +56,7 @@ class Datum {
   dynamic updatedAt;
   ProjectDetail? projectDetail;
 
-  factory Datum.fromJson(Map<String, dynamic> json) => Datum(
+  factory ProjectData.fromJson(Map<String, dynamic> json) => ProjectData(
         id: json["id"],
         registerUserId: json["registerUserId"],
         projectId: json["projectId"],

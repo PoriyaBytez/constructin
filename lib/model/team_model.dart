@@ -76,6 +76,8 @@ class TeamData {
         teamDetails: TeamDetails.fromJson(json["team_details"]),
       );
 
+
+
   Map<String, dynamic> toJson() => {
         "id": id,
         "registerUserId": registerUserId,

@@ -102,7 +102,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                 PreferencesManager.setString(
                     PreferencesKey.userModel, jsonEncode(state.userModel));
                 var projectModel = await ApiServices.getProjectList();
-                if (projectModel.data!.isEmpty) {
+                if (projectModel!.data!.isEmpty) {
                   print("home");
                   Get.offAndToNamed(RouteHelper.home);
                 } else {
@@ -116,7 +116,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
             child: SizedBox(
               height: 96.h,
               width: double.infinity,
-              // child: otpScreen() ,
               child: varification ? otpScreen() : getOtp(),
             ),
           ),
@@ -155,16 +154,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Spacer(),
-                    // Container(
-                    //   height: 90.w,
-                    //   width: 90.w,
-                    //   decoration: BoxDecoration(
-                    //     image: DecorationImage(
-                    //       fit: BoxFit.cover,
-                    //       image: AssetImage(ImageAsset.vault_rafiki),
-                    //     ),
-                    //   ),
-                    // ),
                     Text(
                       "${AppString.strOTPsenton} $code ${numberController.text}",
                       style: TextStyle(
@@ -386,21 +375,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                     ),
                   ),
                 ),
-                // Center(
-                //   child: Padding(
-                //     padding: const EdgeInsets.all(8.0),
-                //     child: Container(
-                //       height: 90.w,
-                //       width: 90.w,
-                //       decoration: BoxDecoration(
-                //         image: DecorationImage(
-                //           fit: BoxFit.cover,
-                //           image: AssetImage(ImageAsset.engineer_rafiki),
-                //         ),
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 SizedBox(
                   height: 20.w,
                 ),
@@ -481,7 +455,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                       )
                     : Container(),
                 Spacer(),
-
                 Padding(
                   padding: EdgeInsets.only(left: 5.w, right: 5.w, bottom: 15.w),
                   child: commandButton(
@@ -501,6 +474,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           setState(() {
                             isLoading = true;
                           });
+
                           verifyPhoneNumber(context);
                         }
                       },
@@ -582,7 +556,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
-          // Toasts.showToast(verificationId.toString());
+          Toasts.showToast("code Auto Retrieval Timeout");
         },
       );
     } catch (e) {

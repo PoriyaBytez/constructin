@@ -14,23 +14,24 @@ class CommandTextFormField extends StatelessWidget {
   ValueChanged<String>? onChange;
   TextInputAction? textInputAction;
   bool readOnly;
+  dynamic maxLines;
   Color? focusColor;
   FormFieldValidator<String>? validator;
   GestureTapCallback? onTab;
 
-  CommandTextFormField(
-      {Key? key,
-      this.title,
-      this.hint,
-      this.focusNode,
-      this.controller,
-      this.textInputType,
-      this.onChange,
-      this.readOnly = false,
-      this.validator,
-      this.onTab,
-      this.focusColor,
-      this.textInputAction})
+  CommandTextFormField({Key? key,
+    this.title,
+    this.hint,
+    this.focusNode,
+    this.controller,
+    this.textInputType,
+    this.onChange,
+    this.readOnly = false,
+    this.validator,
+    this.onTab,
+    this.maxLines = 1,
+    this.focusColor,
+    this.textInputAction})
       : super(key: key);
 
   @override
@@ -40,14 +41,6 @@ class CommandTextFormField extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Text(
-          //   title!,
-          //   style: Utils.regularTextStyle(
-          //       color: AppColor.textColor, fontSize: AppDimens.medium_font),
-          // ),
-          // SizedBox(
-          //   height: 2.w,
-          // ),
           TextFormField(
             onTap: onTab,
             controller: controller,
@@ -55,6 +48,7 @@ class CommandTextFormField extends StatelessWidget {
             focusNode: focusNode,
             keyboardType: textInputType,
             textInputAction: textInputAction,
+            maxLines: maxLines,
             textCapitalization: TextCapitalization.sentences,
             onChanged: onChange,
             validator: validator,

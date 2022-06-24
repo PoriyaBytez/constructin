@@ -6,11 +6,10 @@ import '../utils/app_color.dart';
 import '../utils/app_dimens.dart';
 import '../utils/unil.dart';
 
-Widget commandButton(
-    {required String name,
-    required Color bg,
-    required VoidCallback onPress,
-    required Color strColor}) {
+Widget commandButton({required String name,
+  required Color bg,
+  required VoidCallback onPress,
+  required Color strColor}) {
   return InkWell(
     onTap: onPress,
     child: Container(
@@ -55,7 +54,7 @@ Widget commandTextWithIcon({required String text, required String icon}) {
   );
 }
 
-Widget appBar(String title,GestureTapCallback? onTap){
+Widget appBar(String title, GestureTapCallback? onTap) {
   return Container(
     height: 15.w,
     width: double.infinity,
@@ -73,7 +72,7 @@ Widget appBar(String title,GestureTapCallback? onTap){
       child: Row(
         children: [
           InkWell(
-            onTap:onTap,
+            onTap: onTap,
             child: Padding(
               padding: const EdgeInsets.all(0.0),
               child: SizedBox(
@@ -86,7 +85,7 @@ Widget appBar(String title,GestureTapCallback? onTap){
             width: 5.w,
           ),
           Text(
-               title,
+            title,
             style: Utils.mediumTextStyle(
                 color: AppColor.textColor,
                 fontSize: AppDimens.large_font),
@@ -96,3 +95,38 @@ Widget appBar(String title,GestureTapCallback? onTap){
     ),
   );
 }
+
+Widget planHorizontalList(int selectIndex1,int index,GestureTapCallback? onTap,) {
+  return InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: EdgeInsets.only(left: 2.w, right: 2.w, top: 6.w),
+      child: Container(
+        decoration: BoxDecoration(
+            color: selectIndex1 == index
+                ? AppColor.cBg
+                : AppColor.white,
+            borderRadius:
+            BorderRadius.all(Radius.circular(10.0)),
+            border: Border.all(
+                color: selectIndex1 == index
+                    ? AppColor.textColor2
+                    : AppColor.textColor4,
+                width: 2)),
+        child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                Utils.list[index],
+                style: Utils.mediumTextStyle(
+                    color: selectIndex1 == index
+                        ? AppColor.textColor2
+                        : AppColor.textColor4),
+              ),
+            )),
+      ),
+    ),
+  );
+}
+
+

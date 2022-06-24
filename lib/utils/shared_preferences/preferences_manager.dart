@@ -53,6 +53,7 @@ class PreferencesManager {
   static Future<bool> remove(String key) async {
     return _preferences!.remove(key);
   }
+
   static bool getBool(String key, bool defValue) {
     if (_preferences == null) return defValue;
     return _preferences!.getBool(key) ?? defValue;
@@ -61,6 +62,7 @@ class PreferencesManager {
   static setBool(String key, bool value) async {
     _preferences!.setBool(key, value);
   }
+
   static clear() async {
     _preferences!.clear();
   }

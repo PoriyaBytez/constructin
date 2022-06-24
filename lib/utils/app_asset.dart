@@ -35,4 +35,5 @@ class ImageAsset {
   static String iconSchedule = 'assets/images/icon_schedule.png';
   static String iconChat = 'assets/images/icon_chat.png';
   static String imageAddMember = 'assets/images/image_add_member.png';
+  static String iconPdf = 'assets/images/icon_pdf.png';
 }

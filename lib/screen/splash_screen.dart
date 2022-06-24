@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:constructin/utils/app_asset.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:sizer/sizer.dart';
 
 import '../helper/route_helper.dart';
@@ -24,31 +25,51 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   ProjectModel? projectModel;
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     Timer(const Duration(milliseconds: 3000), () async {
-      String body = PreferencesManager.getString(PreferencesKey.userModel);
-      print("body ${body.toString()}");
-      if (body != "") {
-        projectModel = await ApiServices.getProjectList();
-        if (projectModel!.data!.isEmpty) {
-          print("home");
-          Get.offAndToNamed(RouteHelper.home);
+      bool result = await InternetConnectionChecker().hasConnection;
+      if (result == true) {
+        String body = PreferencesManager.getString(PreferencesKey.userModel);
+        print("body ${body}");
+        if (body != "") {
+          projectModel = await ApiServices.getProjectList();
+          if (projectModel!.data!.isEmpty) {
+            print("home");
+            Get.offAndToNamed(RouteHelper.home);
+          } else {
+            print("projectList");
+            Get.offAndToNamed(RouteHelper.projectList);
+          }
         } else {
-          print("projectList");
-          Get.offAndToNamed(RouteHelper.projectList);
+          Get.offAndToNamed(RouteHelper.signIn);
         }
       } else {
-        Get.offAndToNamed(RouteHelper.signIn);
+        showInSnackBar("Please Connect Internet.");
       }
     });
     super.initState();
   }
 
+  void showInSnackBar(String value) {
+    final snackBar = SnackBar(
+      content: Text(value),
+      action: SnackBarAction(
+        label: '',
+        onPressed: () {
+          // Some code to undo the change.
+        },
+      ),
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppColor.white,
       body: Center(
         child: Column(

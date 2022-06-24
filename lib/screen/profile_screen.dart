@@ -36,9 +36,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   FocusNode roleNode = FocusNode();
   List<String> roleList = [];
   String? roleListValue;
-  int selectRole = 1;
+  int selectRole = 0;
   File? imageFile;
   String imageUrl = '';
+
+  bool selectRoles = false;
 
   @override
   void initState() {
@@ -172,8 +174,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 height: 30.w,
                                 width: 30.w,
                                 decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                ),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: AppColor.black, width: 1)),
                                 child: imageFile == null
                                     ? imageUrl == ""
                                         ? Icon(
@@ -193,7 +196,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             InkWell(
                               onTap: () {
-                                pickImageDialog();
+                                Utils.pickImageDialog(context, () {
+                                  getFromGallery(ImageSource.gallery);
+                                }, () {
+                                  getFromGallery(ImageSource.camera);
+                                });
                               },
                               child: Align(
                                   alignment: Alignment.bottomRight,
@@ -224,6 +231,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       focusNode: nameNode,
                       textInputAction: TextInputAction.next,
                       textInputType: TextInputType.text,
+                      validator: (value) {
+                        if (value == "") {
+                          return "Please enter your name";
+                        }
+                        return null;
+                      },
                       onChange: (value) {},
                     ),
                     CommandTextFormField(
@@ -233,6 +246,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       textInputAction: TextInputAction.next,
                       textInputType: TextInputType.text,
                       onChange: (value) {},
+                      validator: (value) {
+                        if (value == "") {
+                          return "Please enter company name";
+                        }
+                        return null;
+                      },
                     ),
                     Padding(
                       padding: EdgeInsets.all(3.w),
@@ -290,6 +309,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
+                    selectRoles
+                        ? Padding(
+                            padding: EdgeInsets.only(left: 5.w),
+                            child: Text(
+                              "Please select role",
+                              style: TextStyle(
+                                  color: AppColor.red1, fontSize: 12.0),
+                            ),
+                          )
+                        : Container(),
                     SizedBox(
                       height: 30.w,
                     ),
@@ -299,17 +328,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           strColor: AppColor.white,
                           name: 'Save',
                           onPress: () {
-                            ApiServices.editProfile(
-                                    imageFile ?? "",
-                                    nameController.text,
-                                    companyNameController.text,
-                                    selectRole)
-                                .then((value) {
-                              print("value $value");
-                              PreferencesManager.setString(
-                                  PreferencesKey.userModel, jsonEncode(value));
-                              Navigator.pop(context, value.data?.image);
-                            });
+                            if (selectRole == 0) {
+                              setState(() {
+                                selectRoles = true;
+                              });
+                            } else {
+                              setState(() {
+                                selectRoles = false;
+                              });
+                            }
+                            if (_formKey.currentState!.validate()) {
+                              ApiServices.editProfile(
+                                      imageFile ?? "",
+                                      nameController.text,
+                                      companyNameController.text,
+                                      selectRole)
+                                  .then((value) {
+                                print("value $value");
+                                PreferencesManager.setString(
+                                    PreferencesKey.userModel,
+                                    jsonEncode(value));
+                                Navigator.pop(context, value.data?.image);
+                              });
+                            }
                           },
                           bg: AppColor.mainColor),
                     ),
@@ -369,91 +410,5 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
-  }
-
-  pickImageDialog() {
-    return showDialog(
-        context: context,
-        builder: (_) {
-          return Dialog(
-            child: Container(
-              height: 40.w,
-              width: 70.w,
-              decoration: BoxDecoration(
-                color: AppColor.white,
-                borderRadius: BorderRadius.all(Radius.circular(10)),
-              ),
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 2.w,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Select Image",
-                      style: Utils.semiBoldTextStyle(
-                          color: AppColor.mainColor,
-                          fontSize: AppDimens.large_font,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 2.w,
-                  ),
-                  Divider(),
-                  SizedBox(
-                    height: 2.w,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          getFromGallery(ImageSource.gallery);
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.photo,
-                                size: 10.w, color: AppColor.black),
-                            SizedBox(
-                              height: 1.w,
-                            ),
-                            Text(
-                              "Gallery",
-                              style: Utils.mediumTextStyle(
-                                  color: AppColor.textColor,
-                                  fontSize: AppDimens.medium_font),
-                            ),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          getFromGallery(ImageSource.camera);
-                        },
-                        child: Column(
-                          children: [
-                            Icon(Icons.camera,
-                                size: 10.w, color: AppColor.black),
-                            SizedBox(
-                              height: 1.w,
-                            ),
-                            Text(
-                              "Camera",
-                              style: Utils.mediumTextStyle(
-                                  color: AppColor.textColor,
-                                  fontSize: AppDimens.medium_font),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            ),
-          );
-        });
   }
 }

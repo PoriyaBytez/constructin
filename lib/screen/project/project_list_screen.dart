@@ -34,9 +34,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   bool isLoading = false;
 
-  List<Datum>? data;
+  List<ProjectData>? data;
   late UserModel userModel;
-  String? imageUrl;
+  String imageUrl = '';
 
   @override
   void initState() {
@@ -44,7 +44,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     projectListBloc.add(ProjectListPressed());
     String body = PreferencesManager.getString(PreferencesKey.userModel);
     userModel = UserModel.fromJson(jsonDecode(body));
-    imageUrl = userModel.data?.image;
+    imageUrl = userModel.data?.image ?? '';
 
     super.initState();
   }
@@ -101,6 +101,10 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                           Container(
                             height: 10.w,
                             width: 10.w,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColor.black, width: 1)),
                             child: imageUrl == ""
                                 ? Icon(
                                     Icons.person,
@@ -108,8 +112,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   )
                                 : CircleAvatar(
                                     radius: 200.0,
-                                    backgroundImage:
-                                        NetworkImage(imageUrl ?? ""),
+                                    backgroundImage: NetworkImage(imageUrl),
                                   ),
                           ),
                           SizedBox(
@@ -165,7 +168,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         return InkWell(
                           onTap: () {
                             Get.toNamed(RouteHelper.dashBoard,
-                                arguments: data![index].projectId);
+                                arguments: data![index]);
                           },
                           child: SizedBox(
                             height: 70.w,
@@ -198,6 +201,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                           .projectDetail
                                                           ?.projectName ??
                                                       "",
+                                                  overflow: TextOverflow.clip,
                                                   style: Utils.regularTextStyle(
                                                       color:
                                                           AppColor.textColor2,
@@ -252,10 +256,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                   ),
                                                   onSelected: (Menu item) {
                                                     setState(() {
-                                                      print(
-                                                          "registerUserId ${data?[index].registerUserId}");
-                                                      print(
-                                                          "addBy ${data?[index].addBy}");
                                                       if (data?[index]
                                                               .registerUserId ==
                                                           data?[index].addBy) {
@@ -268,12 +268,6 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                                     .projectId,
                                                           );
                                                         }));
-                                                        // Get.toNamed(
-                                                        //     RouteHelper
-                                                        //         .teamMemberList,
-                                                        //     arguments:
-                                                        //         data![index]
-                                                        //             .projectId);
                                                       } else {
                                                         Toasts.showToast(
                                                             "You do not have access");
