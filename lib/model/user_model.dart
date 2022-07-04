@@ -38,6 +38,7 @@ class UserData {
     this.companyName,
     this.currentRoleId,
     this.image,
+    this.basePath,
   });
 
   int? id;
@@ -48,6 +49,7 @@ class UserData {
   String? countryCode;
   String? mobile;
   String? accessToken;
+  String? basePath;
 
   factory UserData.fromJson(Map<String, dynamic> json) => UserData(
       id: json["id"],
@@ -57,7 +59,8 @@ class UserData {
       accessToken: json["access_token"],
       companyName: json["companyName"],
       image: json["image"],
-      currentRoleId: json["currentRoleId"]);
+      currentRoleId: json["currentRoleId"],
+      basePath: json["basePath"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -67,6 +70,7 @@ class UserData {
         "access_token": accessToken,
         "companyName": companyName,
         "image": image,
-        "currentRoleId": currentRoleId
+        "currentRoleId": currentRoleId,
+        "basePath": basePath
       };
 }

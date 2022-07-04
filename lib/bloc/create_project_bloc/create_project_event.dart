@@ -5,7 +5,7 @@ abstract class CreateProjectEvent extends Equatable {
 }
 
 class CreateProjectButtonPressed extends CreateProjectEvent {
- final ProjectDetail? projectDetail;
+  final ProjectDetail? projectDetail;
 
   const CreateProjectButtonPressed({required this.projectDetail});
 

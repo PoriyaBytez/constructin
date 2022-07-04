@@ -1,11 +1,9 @@
 import 'package:constructin/screen/team/contacts_screen.dart';
 import 'package:constructin/utils/app_color.dart';
+import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/widget/comman_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../bloc/team_member_list_bloc/team_member_list_bloc.dart';
@@ -14,7 +12,6 @@ import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_dimens.dart';
 import '../../utils/unil.dart';
-import 'add_team_member_screen.dart';
 
 class TeamMemberListScreen extends StatefulWidget {
   TeamData? teamData;
@@ -82,7 +79,7 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                         children: [
                           InkWell(
                             onTap: () {
-                              Get.back();
+                              Navigator.pop(context, teamDataList!.length);
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(0.0),
@@ -214,7 +211,8 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                                 )
                               : CircleAvatar(
                                   radius: 200,
-                                  backgroundImage: NetworkImage(
+                                  backgroundImage: NetworkImage(AppString
+                                          .basePath +
                                       teamDataList![index].teamDetails?.image),
                                 ),
                         ),
@@ -222,7 +220,7 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                           width: 2.w,
                         ),
                         SizedBox(
-                          width: 30.w,
+                          width: 25.w,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,29 +403,29 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
   }
 
   Future addMember() async {
-    if (await FlutterContacts.requestPermission()) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) {
-        return AddTeamMemberScreen(projectId: widget.projectID!);
-      })).then((value) {
-        if (value != null) {
-          setState(() {
-            teamDataList?.add(value);
-          });
-        }
-      });
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (_) {
-        return ContactScreen(
-          projectID: widget.projectID!,
-          flag: 1,
-        );
-      })).then((value) {
-        if (value != null) {
-          setState(() {
-            teamDataList?.add(value);
-          });
-        }
-      });
-    }
+    // if (await FlutterContacts.requestPermission()) {
+    //   Navigator.push(context, MaterialPageRoute(builder: (_) {
+    //     return AddTeamMemberScreen(projectId: widget.projectID!);
+    //   })).then((value) {
+    //     if (value != null) {
+    //       setState(() {
+    //         teamDataList?.add(value);
+    //       });
+    //     }
+    //   });
+    // } else {
+    Navigator.push(context, MaterialPageRoute(builder: (_) {
+      return ContactScreen(
+        projectID: widget.projectID!,
+        flag: 1,
+      );
+    })).then((value) {
+      if (value != null) {
+        setState(() {
+          teamDataList?.add(value);
+        });
+      }
+    });
+    // }
   }
 }

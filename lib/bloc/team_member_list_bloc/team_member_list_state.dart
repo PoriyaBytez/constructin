@@ -8,6 +8,7 @@ class TeamMemberListInitial extends TeamMemberListState {
   @override
   List<Object> get props => [];
 }
+
 class TeamMemberListLoading extends TeamMemberListState {
   @override
   // TODO: implement props
@@ -23,6 +24,7 @@ class TeamMemberListSuccess extends TeamMemberListState {
   // TODO: implement props
   List<Object?> get props => throw UnimplementedError();
 }
+
 class TeamMemberListFailure extends TeamMemberListState {
   final String error;
 

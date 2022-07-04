@@ -4,7 +4,6 @@ import '../screen/auth/mobile_number_screen.dart';
 import '../screen/auth/sign_in_screen.dart';
 import '../screen/dashboard/dashboard_screen.dart';
 import '../screen/home_screen.dart';
-import '../screen/issue_details_screen.dart';
 import '../screen/profile_screen.dart';
 import '../screen/project/create_project_screen.dart';
 import '../screen/project/project_list_screen.dart';
@@ -42,7 +41,6 @@ class RouteHelper {
     GetPage(name: projectList, page: () => ProjectListScreen()),
     GetPage(name: dashBoard, page: () => DashBoardScreen()),
     GetPage(name: updateTask, page: () => UpdateTaskScreen()),
-    GetPage(name: issueDetails, page: () => IssueDetailsScreen()),
     GetPage(name: taskReview, page: () => TaskReviewScreen()),
 
     // GetPage(name: addTeamMember, page: () => AddTeamMemberScreen()),

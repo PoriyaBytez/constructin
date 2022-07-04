@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:constructin/model/task_model.dart';
-
 TaskDetailsModel taskDetailsModelFromJson(String str) =>
     TaskDetailsModel.fromJson(json.decode(str));
 
@@ -34,25 +32,26 @@ class TaskDetailsModel {
 }
 
 class TaskDetailsData {
-  TaskDetailsData(
-      {this.id,
-      this.registerUserId,
-      this.projectId,
-      this.taskId,
-      this.todayProgress,
-      this.noOfGang,
-      this.attendees,
-      this.attendeesSkilled,
-      this.attendeesSemiSkilled,
-      this.attendeesUnskilled,
-      this.date,
-      this.remark,
-      this.deletedAt,
-      this.createdAt,
-      this.updatedAt,
-      this.taskMembers,
-      this.workCompleted,
-      this.task});
+  TaskDetailsData({
+    this.id,
+    this.registerUserId,
+    this.projectId,
+    this.taskId,
+    this.todayProgress,
+    this.noOfGang,
+    this.attendees,
+    this.attendeesSkilled,
+    this.attendeesSemiSkilled,
+    this.attendeesUnskilled,
+    this.date,
+    this.remark,
+    this.deletedAt,
+    this.createdAt,
+    this.updatedAt,
+    this.unitTitle,
+    this.taskMembers,
+    this.workCompleted,
+  });
 
   int? id;
   int? registerUserId;
@@ -71,7 +70,7 @@ class TaskDetailsData {
   String? updatedAt;
   int? taskMembers;
   int? workCompleted;
-  TaskDetailsList? task;
+  dynamic unitTitle;
 
   factory TaskDetailsData.fromJson(Map<String, dynamic> json) =>
       TaskDetailsData(
@@ -90,9 +89,9 @@ class TaskDetailsData {
           deletedAt: json["deleted_at"],
           createdAt: json["created_at"],
           updatedAt: json["updated_at"],
+          unitTitle: json["unitTitle"],
           taskMembers: json["taskMembers"],
-          workCompleted: json["workCompleted"],
-          task: TaskDetailsList.fromJson(json["task"]));
+          workCompleted: json["workCompleted"]);
 
   Map<String, dynamic> toJson() => {
         "id": id,
@@ -111,6 +110,6 @@ class TaskDetailsData {
         "deleted_at": deletedAt,
         "created_at": createdAt,
         "updated_at": updatedAt,
-        "task": task,
+        "unitTitle": unitTitle,
       };
 }

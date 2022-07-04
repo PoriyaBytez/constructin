@@ -1,11 +1,9 @@
-import 'package:constructin/helper/route_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../model/team_model.dart';
-import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
@@ -28,6 +26,7 @@ class ManageRole extends StatefulWidget {
 class _ManageRoleState extends State<ManageRole> {
   int? joinded;
   List b = [];
+
   @override
   void initState() {
     joinded = widget.teamData!.joined;
@@ -90,13 +89,13 @@ class _ManageRoleState extends State<ManageRole> {
                     Row(
                       children: [
                         Padding(
-                          padding:
-                              EdgeInsets.only(right: 6.w, top: 1.w, bottom: 1.w),
+                          padding: EdgeInsets.only(
+                              right: 6.w, top: 1.w, bottom: 1.w),
                           child: Image.asset(ImageAsset.iconFilter),
                         ),
                         Padding(
-                          padding:
-                              EdgeInsets.only(right: 5.w, top: 1.w, bottom: 1.w),
+                          padding: EdgeInsets.only(
+                              right: 5.w, top: 1.w, bottom: 1.w),
                           child: Image.asset(ImageAsset.iconsSearch),
                         ),
                         SizedBox(
@@ -148,10 +147,12 @@ class _ManageRoleState extends State<ManageRole> {
                                   width: 30.w,
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        widget.teamData!.teamDetails?.name ?? "-",
+                                        widget.teamData!.teamDetails?.name ??
+                                            "-",
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                         style: Utils.regularTextStyle(),
@@ -179,7 +180,6 @@ class _ManageRoleState extends State<ManageRole> {
                             ),
                             InkWell(
                               onTap: () {
-
                                 setState(() {});
                               },
                               child: Row(
@@ -210,92 +210,88 @@ class _ManageRoleState extends State<ManageRole> {
                     ),
                   ),
                   Column(
-                          children: [
-                            ListView.builder(
-                                itemCount: widget.teamData!.rights!.length,
-                                shrinkWrap: true,
-                                itemBuilder: (context, i) {
-                                  return Padding(
-                                    padding: EdgeInsets.only(top: 3),
-                                    child: Container(
-                                      height: 12.w,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: AppColor.white,
-                                        boxShadow: const <BoxShadow>[
-                                          BoxShadow(
-                                              color: AppColor.bg,
-                                              blurRadius: 1.0,
-                                              offset: Offset(0.0, 0.75))
-                                        ],
+                    children: [
+                      ListView.builder(
+                          itemCount: widget.teamData!.rights!.length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, i) {
+                            return Padding(
+                              padding: EdgeInsets.only(top: 3),
+                              child: Container(
+                                height: 12.w,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AppColor.white,
+                                  boxShadow: const <BoxShadow>[
+                                    BoxShadow(
+                                        color: AppColor.bg,
+                                        blurRadius: 1.0,
+                                        offset: Offset(0.0, 0.75))
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      Checkbox(
+                                          activeColor: AppColor.mainColor,
+                                          value: widget
+                                              .teamData!.rights![i].isAllow,
+                                          onChanged: (bool? value) {
+                                            print("value  bool $value");
+                                            setState(() {
+                                              widget.teamData!.rights![i]
+                                                  .isAllow = value;
+                                            });
+                                          }),
+                                      Text(
+                                        "${widget.teamData!.rights![i].title} - ",
+                                        style: Utils.mediumTextStyle(
+                                            fontSize: AppDimens.indicator_size,
+                                            color: AppColor.textColor),
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Row(
-                                          children: [
-                                            Checkbox(
-                                                activeColor: AppColor.mainColor,
-                                                value: widget
-                                                    .teamData!.rights![i].isAllow,
-                                                onChanged: (bool? value) {
-                                                  print("value  bool $value");
-                                                  setState(() {
-                                                    widget.teamData!.rights![i]
-                                                        .isAllow = value;
-                                                  });
-                                                }),
-                                            Text(
-                                              "${widget.teamData!.rights![i].title} - ",
-                                              style: Utils.mediumTextStyle(
-                                                  fontSize:
-                                                      AppDimens.indicator_size,
-                                                  color: AppColor.textColor),
-                                            ),
-                                            Expanded(
-                                              child: Text(
-                                                widget.teamData!.rights![i]
-                                                        .description ??
-                                                    "",
-                                                style: Utils.regularTextStyle(
-                                                    fontSize:
-                                                        AppDimens.indicator_size,
-                                                    color: AppColor.textColor),
-                                              ),
-                                            ),
-                                          ],
+                                      Expanded(
+                                        child: Text(
+                                          widget.teamData!.rights![i]
+                                                  .description ??
+                                              "",
+                                          style: Utils.regularTextStyle(
+                                              fontSize:
+                                                  AppDimens.indicator_size,
+                                              color: AppColor.textColor),
                                         ),
                                       ),
-                                    ),
-                                  );
-                                }),
-                            commandButton(
-                                name: "Save",
-                                bg: AppColor.textFormFieldBg,
-                                onPress: () {
-                                  List<int> projectRights = [];
-                                  widget.teamData!.rights!
-                                      .asMap()
-                                      .entries
-                                      .map((e) {
-                                    if (widget.teamData!.rights![e.key].isAllow ==
-                                        true) {
-                                      projectRights.add(e.key + 1);
-                                    }
-                                  }).toList();
-                                  print(projectRights.join(','));
-                                  // ApiServices.postRoleAssignee(
-                                  //     widget.teamData!.registerUserId!,
-                                  //     widget.teamData!.projectId!,
-                                  //    projectRights.isEmpty ? null : projectRights.join(',')).then((value) {
-                                  //       if(value == true){
-                                  //         Navigator.pop(context);
-                                  //         Get.offAndToNamed(RouteHelper.teamMemberList,arguments: widget.teamData!.projectId!);
-                                  //       }
-                                  // });
-                                },
-                                strColor: AppColor.textColor3)
-                          ],
-                        )
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                      commandButton(
+                          name: "Save",
+                          bg: AppColor.textFormFieldBg,
+                          onPress: () {
+                            List<int> projectRights = [];
+                            widget.teamData!.rights!.asMap().entries.map((e) {
+                              if (widget.teamData!.rights![e.key].isAllow ==
+                                  true) {
+                                projectRights.add(e.key + 1);
+                              }
+                            }).toList();
+                            print(projectRights.join(','));
+                            // ApiServices.postRoleAssignee(
+                            //     widget.teamData!.registerUserId!,
+                            //     widget.teamData!.projectId!,
+                            //    projectRights.isEmpty ? null : projectRights.join(',')).then((value) {
+                            //       if(value == true){
+                            //         Navigator.pop(context);
+                            //         Get.offAndToNamed(RouteHelper.teamMemberList,arguments: widget.teamData!.projectId!);
+                            //       }
+                            // });
+                          },
+                          strColor: AppColor.textColor3)
+                    ],
+                  )
                 ],
               ),
             ),

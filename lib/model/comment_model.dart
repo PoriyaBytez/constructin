@@ -1,24 +1,26 @@
 import 'dart:convert';
 
-TaskImageModel taskImageModelFromJson(String str) =>
-    TaskImageModel.fromJson(json.decode(str));
+import 'package:constructin/model/team_model.dart';
 
-String taskImageModelToJson(TaskImageModel data) => json.encode(data.toJson());
+CommentModel commentModelFromJson(String str) =>
+    CommentModel.fromJson(json.decode(str));
 
-class TaskImageModel {
-  TaskImageModel({
+String commentModelToJson(CommentModel data) => json.encode(data.toJson());
+
+class CommentModel {
+  CommentModel({
     this.data,
     this.success,
     this.message,
   });
 
-  List<TaskImageData>? data;
+  List<CommentData>? data;
   bool? success;
   String? message;
 
-  factory TaskImageModel.fromJson(Map<String, dynamic> json) => TaskImageModel(
-        data: List<TaskImageData>.from(
-            json["data"].map((x) => TaskImageData.fromJson(x))),
+  factory CommentModel.fromJson(Map<String, dynamic> json) => CommentModel(
+        data: List<CommentData>.from(
+            json["data"].map((x) => CommentData.fromJson(x))),
         success: json["success"],
         message: json["message"],
       );
@@ -30,39 +32,47 @@ class TaskImageModel {
       };
 }
 
-class TaskImageData {
-  TaskImageData({
+class CommentData {
+  CommentData({
     this.id,
     this.registerUserId,
     this.projectId,
     this.taskId,
     this.issueId,
     this.image,
+    this.comment,
     this.deletedAt,
     this.createdAt,
     this.updatedAt,
+    this.members,
   });
 
   int? id;
   int? registerUserId;
   int? projectId;
-  int? taskId;
+  String? taskId;
   int? issueId;
-  String? image;
+  dynamic image;
+  String? comment;
   dynamic deletedAt;
-  dynamic createdAt;
-  dynamic updatedAt;
+  String? createdAt;
+  String? updatedAt;
+  dynamic members;
 
-  factory TaskImageData.fromJson(Map<String, dynamic> json) => TaskImageData(
+  factory CommentData.fromJson(Map<String, dynamic> json) => CommentData(
         id: json["id"],
         registerUserId: json["registerUserId"],
         projectId: json["projectId"],
         taskId: json["taskId"],
         issueId: json["issueId"],
-        image: json["image"] == null ? null : json["image"],
+        image: json["image"],
+        comment: json["comment"],
         deletedAt: json["deleted_at"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
+        members: json["members"] == null
+            ? null
+            : TeamDetails.fromJson(json["members"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -71,9 +81,11 @@ class TaskImageData {
         "projectId": projectId,
         "taskId": taskId,
         "issueId": issueId,
-        "image": image == null ? null : image,
+        "image": image,
+        "comment": comment,
         "deleted_at": deletedAt,
         "created_at": createdAt,
         "updated_at": updatedAt,
+        "members": members?.toJson(),
       };
 }

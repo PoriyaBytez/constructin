@@ -43,11 +43,13 @@ class TaskDetailsList {
       this.deletedAt,
       this.createdAt,
       this.updatedAt,
+      this.issues_count,
       this.project,
       this.taskCategory,
       this.taskUnit,
       this.taskMembers,
-      this.workCompleted});
+      this.workCompleted,
+      this.unitTitle});
 
   int? id;
   int? registerUserId;
@@ -64,8 +66,10 @@ class TaskDetailsList {
   Project? project;
   dynamic taskCategory;
   dynamic taskUnit;
+  int? issues_count;
   int? taskMembers;
   int? workCompleted;
+  dynamic unitTitle;
 
   factory TaskDetailsList.fromJson(Map<String, dynamic> json) =>
       TaskDetailsList(
@@ -81,6 +85,7 @@ class TaskDetailsList {
         deletedAt: json["deleted_at"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
+        issues_count: json["issues_count"],
         project:
             json["project"] == null ? null : Project.fromJson(json["project"]),
         taskCategory: json["task_category"] == null
@@ -90,6 +95,7 @@ class TaskDetailsList {
             json["task_unit"] == null ? null : Task.fromJson(json["task_unit"]),
         taskMembers: json["taskMembers"],
         workCompleted: json["workCompleted"],
+        unitTitle: json["unitTitle"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -107,11 +113,13 @@ class TaskDetailsList {
         "deleted_at": deletedAt,
         "created_at": createdAt,
         "updated_at": updatedAt,
+        "issues_count": issues_count,
         "project": project?.toJson(),
         "task_category": taskCategory?.toJson(),
         "task_unit": taskUnit?.toJson(),
         "taskMembers": taskMembers,
-        "workCompleted": workCompleted
+        "workCompleted": workCompleted,
+        "unitTitle": unitTitle
       };
 }
 

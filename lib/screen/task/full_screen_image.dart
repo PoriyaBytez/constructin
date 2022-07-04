@@ -1,6 +1,11 @@
+import 'package:constructin/utils/app_string.dart';
 import 'package:flutter/material.dart';
-import 'package:sizer/sizer.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+
+import '../../widget/comman_widget.dart';
 
 class FullScreen extends StatefulWidget {
   String url, extention;
@@ -13,18 +18,32 @@ class FullScreen extends StatefulWidget {
 
 class _FullScreenState extends State<FullScreen> {
   @override
+  void initState() {
+    print("AppString.basePath ${AppString.basePath}");
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: widget.extention != "pdf"
-            ? Center(
-                child: Container(
-                    height: 100.h,
-                    width: 100.w,
-                    child: Image.network(widget.url)),
-              )
-            : SfPdfViewer.network(widget.url),
-      ),
+          body: Column(
+        children: [
+          appBar("", () {
+            Get.back();
+          }),
+          widget.extention != "pdf"
+              ? Expanded(
+                  child: Center(
+                      child: PhotoView(
+                    imageProvider:
+                        NetworkImage(AppString.basePath + widget.url),
+                  )),
+                )
+              : Expanded(
+                  child: SfPdfViewer.network(AppString.basePath + widget.url)),
+        ],
+      )),
     );
   }
 }

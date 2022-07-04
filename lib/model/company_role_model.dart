@@ -19,7 +19,8 @@ class CompanyRoleModel {
 
   factory CompanyRoleModel.fromJson(Map<String, dynamic> json) =>
       CompanyRoleModel(
-        data: List<CompanyRole>.from(json["data"].map((x) => CompanyRole.fromJson(x))),
+        data: List<CompanyRole>.from(
+            json["data"].map((x) => CompanyRole.fromJson(x))),
         success: json["success"],
         message: json["message"],
       );

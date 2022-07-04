@@ -72,11 +72,11 @@ class TeamData {
         deletedAt: json["deleted_at"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
-        rights: List<Right>.from(json["rights"].map((x) => Right.fromJson(x))),
+        rights: json["rights"] == null
+            ? null
+            : List<Right>.from(json["rights"].map((x) => Right.fromJson(x))),
         teamDetails: TeamDetails.fromJson(json["team_details"]),
       );
-
-
 
   Map<String, dynamic> toJson() => {
         "id": id,

@@ -160,15 +160,24 @@ class Utils {
             child: Container(
               height: 90.w,
               width: 90.h,
-              child: Image.network(image,fit: BoxFit.cover,),
+              child: Image.network(
+                image,
+                fit: BoxFit.cover,
+              ),
             ),
           );
         });
   }
 
-  static List<String> list = ['All', 'Not started', 'In progress', 'Slow', 'Delayed'];
+  static List<String> list = [
+    'All',
+    'Not started',
+    'In progress',
+    'Slow',
+    'Delayed'
+  ];
 
-  static  int daysElapsedSince(DateTime from, DateTime to) {
+  static int daysElapsedSince(DateTime from, DateTime to) {
     from = DateTime(from.year, from.month, from.day);
     to = DateTime(to.year, to.month, to.day);
     return to.difference(from).inDays;

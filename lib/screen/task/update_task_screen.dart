@@ -19,6 +19,7 @@ import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../bloc/task_update_bloc/task_update_bloc.dart';
+import '../../model/issue_model.dart';
 import '../../model/task_details_model.dart';
 import '../../model/task_image_model.dart';
 import '../../model/task_model.dart';
@@ -26,6 +27,7 @@ import '../../utils/api_services.dart';
 import '../../utils/app_string.dart';
 import '../../widget/comman_widget.dart';
 import '../../widget/text_form_field.dart';
+import '../issue_details_screen.dart';
 
 class UpdateTaskScreen extends StatefulWidget {
   const UpdateTaskScreen({Key? key}) : super(key: key);
@@ -52,11 +54,16 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   List<String> unitList = [];
 
   List<TaskImageData> taskImageList = [];
+  List<IssueData> issueList = [];
 
   @override
   void initState() {
-    taskUpdateBloc = BlocProvider.of<TaskUpdateBloc>(context);
     taskDetailsList = Get.arguments;
+    formatter = DateFormat('yyyy/MM/dd');
+    currentDate = formatter.format(now);
+    taskUpdateBloc = BlocProvider.of<TaskUpdateBloc>(context);
+    taskUpdateBloc.add(
+        TaskUpdatePressed(taskId: taskDetailsList.id ?? 0, date: currentDate));
     ApiServices.getUnitList().then((value) {
       for (int i = 0; i < value.data!.length; i++) {
         setState(() {
@@ -64,13 +71,14 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
         });
       }
     });
-    formatter = DateFormat('yyyy-MM-dd');
-    currentDate = formatter.format(now);
-    taskUpdateBloc.add(
-        TaskUpdatePressed(taskId: taskDetailsList.id ?? 0, date: currentDate));
     ApiServices.getTaskImageList(taskDetailsList.id!).then((value) {
       setState(() {
         taskImageList = value.data!;
+      });
+    });
+    ApiServices.getIssueList(taskDetailsList.id!, 1).then((value) {
+      setState(() {
+        issueList = value.data!;
       });
     });
     super.initState();
@@ -88,8 +96,8 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
       // if (detailsData.task?.taskUnit == null) {
       //   unit = "Unit of work";
       // } else {
-      Task task = detailsData.task?.taskUnit;
-      unit = task.title;
+      // Task task = detailsData.task?.taskUnit;
+      unit = detailsData.unitTitle;
       // taskDetailsList.workCompleted = detailsData.workCompleted;
       // taskDetailsList.taskMembers = detailsData.taskMembers;
       // }
@@ -127,8 +135,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                           semiSkilledController.text = "";
                           unSkilledController.text = "";
                           radioValue = int.parse("1");
-                          // taskDetailsList.workCompleted = 0;
-                          // taskDetailsList.taskMembers = 0;
                           unit = "Unit of work";
                         });
                       }
@@ -186,8 +192,9 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                 value.totalWork;
                                             taskDetailsList.startDate =
                                                 value.startDate;
+                                            unit = value.unitTitle;
                                             taskDetailsList.unitId =
-                                                value?.unitId;
+                                                value.unitId;
                                             taskDetailsList.taskMembers =
                                                 value?.taskMembers;
                                           });
@@ -257,7 +264,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                       now.month,
                                                       now.day - 1);
                                                   var formatter =
-                                                      DateFormat('yyyy-MM-dd');
+                                                      DateFormat('yyyy/MM/dd');
                                                   now = yesterday;
                                                   currentDate = formatter
                                                       .format(yesterday);
@@ -291,7 +298,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                       now.day + 1);
                                                   now = yesterday;
                                                   var formatter =
-                                                      DateFormat('yyyy-MM-dd');
+                                                      DateFormat('yyyy/MM/dd');
                                                   currentDate = formatter
                                                       .format(yesterday);
                                                   taskUpdateBloc.add(
@@ -338,8 +345,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                             ),
                                             Row(
                                               children: [
-                                                SizedBox(
-                                                  width: 60.w,
+                                                Expanded(
                                                   child: CommandTextFormField(
                                                     title: AppString
                                                         .strEnterQuantity,
@@ -366,95 +372,107 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                             Padding(
                                               padding:
                                                   EdgeInsets.only(left: 3.w),
-                                              child: Container(
-                                                width: 57.w,
-                                                height: 8.w,
-                                                decoration: BoxDecoration(
-                                                    color: AppColor.gray3,
-                                                    borderRadius:
-                                                        BorderRadius.all(
-                                                            Radius.circular(
-                                                                5))),
-                                                child: Row(
-                                                  children: [
-                                                    InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          radioValue = 1;
-                                                        });
-                                                      },
-                                                      child: Padding(
-                                                        padding: EdgeInsets.all(
-                                                            0.5.w),
-                                                        child: Container(
-                                                          height: 6.5.w,
-                                                          decoration: BoxDecoration(
-                                                              color:
-                                                                  radioValue ==
+                                              child: Row(
+                                                children: [
+                                                  Container(
+                                                    decoration: BoxDecoration(
+                                                        color: AppColor.gray3,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    5))),
+                                                    child: Row(
+                                                      children: [
+                                                        InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              radioValue = 1;
+                                                            });
+                                                          },
+                                                          child: Padding(
+                                                            padding:
+                                                                EdgeInsets.all(
+                                                                    0.5.w),
+                                                            child: Container(
+                                                              height: 6.5.w,
+                                                              decoration: BoxDecoration(
+                                                                  color: radioValue ==
                                                                           1
                                                                       ? AppColor
                                                                           .white
                                                                       : AppColor
                                                                           .gray3,
-                                                              borderRadius: BorderRadius
-                                                                  .all(Radius
-                                                                      .circular(
-                                                                          5))),
-                                                          child: Center(
-                                                            child: Padding(
-                                                              padding: EdgeInsets
-                                                                  .only(
-                                                                      left: 2.w,
-                                                                      right:
-                                                                          2.w),
-                                                              child: Text(
-                                                                "Add Gang",
-                                                                style: Utils.regularTextStyle(
-                                                                    color: AppColor
-                                                                        .dotColor),
+                                                                  borderRadius:
+                                                                      BorderRadius.all(
+                                                                          Radius.circular(
+                                                                              5))),
+                                                              child: Center(
+                                                                child: Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          left: 2
+                                                                              .w,
+                                                                          right:
+                                                                              2.w),
+                                                                  child: Text(
+                                                                    "Add Gang",
+                                                                    style: Utils
+                                                                        .regularTextStyle(
+                                                                            color:
+                                                                                AppColor.dotColor),
+                                                                  ),
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
                                                         ),
-                                                      ),
-                                                    ),
-                                                    InkWell(
-                                                      onTap: () {
-                                                        setState(() {
-                                                          radioValue = 2;
-                                                        });
-                                                      },
-                                                      child: Container(
-                                                        height: 6.5.w,
-                                                        decoration: BoxDecoration(
-                                                            color: radioValue ==
-                                                                    2
-                                                                ? AppColor.white
-                                                                : AppColor
-                                                                    .gray3,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .all(Radius
-                                                                        .circular(
-                                                                            5))),
-                                                        child: Center(
+                                                        InkWell(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              radioValue = 2;
+                                                            });
+                                                          },
                                                           child: Padding(
                                                             padding:
-                                                                EdgeInsets.only(
-                                                                    left: 3.w,
-                                                                    right: 3.w),
-                                                            child: Text(
-                                                              "Add manpower",
-                                                              style: Utils.regularTextStyle(
-                                                                  color: AppColor
-                                                                      .dotColor),
+                                                                EdgeInsets.all(
+                                                                    0.5.w),
+                                                            child: Container(
+                                                              height: 6.5.w,
+                                                              decoration: BoxDecoration(
+                                                                  color: radioValue ==
+                                                                          2
+                                                                      ? AppColor
+                                                                          .white
+                                                                      : AppColor
+                                                                          .gray3,
+                                                                  borderRadius:
+                                                                      BorderRadius.all(
+                                                                          Radius.circular(
+                                                                              5))),
+                                                              child: Center(
+                                                                child: Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          left: 3
+                                                                              .w,
+                                                                          right:
+                                                                              3.w),
+                                                                  child: Text(
+                                                                    "Add manpower",
+                                                                    style: Utils
+                                                                        .regularTextStyle(
+                                                                            color:
+                                                                                AppColor.dotColor),
+                                                                  ),
+                                                                ),
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
-                                                      ),
+                                                      ],
                                                     ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                             radioValue == 1
@@ -489,27 +507,25 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                         MainAxisAlignment
                                                             .spaceBetween,
                                                     children: [
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                                    left: 3.w,
-                                                                    top: 4.w),
-                                                            child: Text(
-                                                              "Skilled",
-                                                              style: Utils.regularTextStyle(
-                                                                  color: AppColor
-                                                                      .textColor1),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .only(
+                                                                      left: 3.w,
+                                                                      top: 4.w),
+                                                              child: Text(
+                                                                "Skilled",
+                                                                style: Utils.regularTextStyle(
+                                                                    color: AppColor
+                                                                        .textColor1),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: 28.w,
-                                                            child:
-                                                                CommandTextFormField(
+                                                            CommandTextFormField(
                                                               title: AppString
                                                                   .strEnterQuantity,
                                                               controller:
@@ -525,30 +541,28 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                               onChange:
                                                                   (value) {},
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                                    left: 3.w,
-                                                                    top: 4.w),
-                                                            child: Text(
-                                                              "Semi-skilled",
-                                                              style: Utils.regularTextStyle(
-                                                                  color: AppColor
-                                                                      .textColor1),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .only(
+                                                                      left: 3.w,
+                                                                      top: 4.w),
+                                                              child: Text(
+                                                                "Semi-skilled",
+                                                                style: Utils.regularTextStyle(
+                                                                    color: AppColor
+                                                                        .textColor1),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: 28.w,
-                                                            child:
-                                                                CommandTextFormField(
+                                                            CommandTextFormField(
                                                               title: AppString
                                                                   .strEnterQuantity,
                                                               controller:
@@ -564,30 +578,28 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                               onChange:
                                                                   (value) {},
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Padding(
-                                                            padding:
-                                                                EdgeInsets.only(
-                                                                    left: 3.w,
-                                                                    top: 4.w),
-                                                            child: Text(
-                                                              "Unskilled",
-                                                              style: Utils.regularTextStyle(
-                                                                  color: AppColor
-                                                                      .textColor1),
+                                                      Expanded(
+                                                        child: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Padding(
+                                                              padding: EdgeInsets
+                                                                  .only(
+                                                                      left: 3.w,
+                                                                      top: 4.w),
+                                                              child: Text(
+                                                                "Unskilled",
+                                                                style: Utils.regularTextStyle(
+                                                                    color: AppColor
+                                                                        .textColor1),
+                                                              ),
                                                             ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: 28.w,
-                                                            child:
-                                                                CommandTextFormField(
+                                                            CommandTextFormField(
                                                               title: AppString
                                                                   .strEnterQuantity,
                                                               controller:
@@ -603,8 +615,8 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                                               onChange:
                                                                   (value) {},
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
                                                     ],
                                                   ),
@@ -616,223 +628,9 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: 3.w,
-                              ),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(context,
-                                      MaterialPageRoute(builder: (_) {
-                                    return TaskIssueScreen(
-                                      taskDetailsList: taskDetailsList,
-                                    );
-                                  }));
-                                },
-                                child: Text(
-                                  "+ Add issues",
-                                  style: Utils.regularTextStyle(
-                                      fontSize: AppDimens.large_font,
-                                      color: AppColor.textColor3),
-                                ),
-                              ),
-                              SizedBox(
-                                height: 3.w,
-                              ),
-                              SizedBox(
-                                height: 50.w,
-                                width: 88.w,
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  padding: EdgeInsets.zero,
-                                  itemCount: 5,
-                                  scrollDirection: Axis.horizontal,
-                                  itemBuilder: (context, index) {
-                                    return Container(
-                                      height: 50.w,
-                                      width: 80.w,
-                                      child: Card(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(4.w),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                            color:
-                                                                AppColor.green1,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5)),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8.0),
-                                                          child: Text(
-                                                            "Material",
-                                                            style: Utils
-                                                                .regularTextStyle(
-                                                                    color: AppColor
-                                                                        .green),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      SizedBox(
-                                                        width: 5.w,
-                                                      ),
-                                                      Container(
-                                                        decoration: BoxDecoration(
-                                                            color: AppColor
-                                                                .btnUpdateBg,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        5)),
-                                                        child: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8.0),
-                                                          child: Text(
-                                                            "Excavation",
-                                                            style: Utils
-                                                                .regularTextStyle(
-                                                                    color: AppColor
-                                                                        .textColor2),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                      height: 8.w,
-                                                      width: 8.w,
-                                                      child: Image.asset(
-                                                          ImageAsset
-                                                              .icons_more)),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 3.w,
-                                              ),
-                                              Text(
-                                                "Material shortage at site due to price hike and other reasons",
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 1,
-                                                style: Utils.regularTextStyle(
-                                                    color: AppColor.green),
-                                              ),
-                                              SizedBox(
-                                                height: 3.w,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    height: 8.w,
-                                                    width: 8.w,
-                                                    decoration: BoxDecoration(
-                                                        image: DecorationImage(
-                                                            image: AssetImage(
-                                                                ImageAsset
-                                                                    .ellipse))),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 2.w,
-                                                  ),
-                                                  Text(
-                                                    "John Doe",
-                                                    style:
-                                                        Utils.regularTextStyle(
-                                                            color: AppColor
-                                                                .textColor8,
-                                                            fontSize: 2.4.w),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 2.w,
-                                                  ),
-                                                  Container(
-                                                    height: 8.w,
-                                                    width: 8.w,
-                                                    decoration: BoxDecoration(
-                                                        image: DecorationImage(
-                                                            image: AssetImage(
-                                                                ImageAsset
-                                                                    .iconSchedule))),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 2.w,
-                                                  ),
-                                                  Text(
-                                                    "10:00 AM, 24th May 2022",
-                                                    style:
-                                                        Utils.regularTextStyle(
-                                                            color: AppColor
-                                                                .textColor8,
-                                                            fontSize: 2.4.w),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 3.w,
-                                              ),
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Container(
-                                                    height: 5.w,
-                                                    width: 5.w,
-                                                    decoration: BoxDecoration(
-                                                        image: DecorationImage(
-                                                            image: AssetImage(
-                                                                ImageAsset
-                                                                    .iconChat))),
-                                                  ),
-                                                  Container(
-                                                    decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius.all(
-                                                                Radius.circular(
-                                                                    5)),
-                                                        border: Border.all(
-                                                            color:
-                                                                AppColor.red1,
-                                                            width: 2)),
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: Text(
-                                                        "Close issue",
-                                                        style: Utils
-                                                            .regularTextStyle(
-                                                                color: AppColor
-                                                                    .red1),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
+                              addIssue(),
                               InkWell(
                                   onTap: () {
-                                    print(
-                                        "dsadasd ${taskDetailsList.totalWork}");
                                     if (taskDetailsList.totalWork != null) {
                                       TaskDetailsData data = TaskDetailsData(
                                           projectId: taskDetailsList.projectId,
@@ -850,13 +648,14 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                           remark: "test",
                                           date: currentDate);
                                       ApiServices.postProgress(data)
-                                          .then((value) {
+                                          ?.then((value) {
                                         setState(() {
                                           TaskDetailsModel data = value;
                                           taskDetailsList.workCompleted =
                                               data.data?.workCompleted;
                                           taskDetailsList.taskMembers =
                                               data.data?.taskMembers;
+                                          Navigator.pop(context);
                                         });
                                       });
                                     } else {
@@ -889,24 +688,28 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
 
   openCamera(ImageSource source) async {
     XFile? pickedFile = (await ImagePicker().pickImage(
-        source: source, maxWidth: 1000, maxHeight: 1000, imageQuality: 10));
+        source: source, maxWidth: 1000, maxHeight: 1000, imageQuality: 50));
+
     List<MultipartFile> list = [];
     String fileName = File(pickedFile!.path).path.split('/').last;
     list.add(await MultipartFile.fromFile(File(pickedFile.path).path,
         filename: fileName));
-
     ApiServices.postTaskImage(list, taskDetailsList.id,
             taskDetailsList.projectId, taskDetailsList.registerUserId)
         .then((value) {
       setState(() {
-        taskImageList.add(value.data![0]);
+        taskImageList.add(value!.data![0]);
         Navigator.pop(context);
       });
     });
   }
 
   getFilePicker() async {
-    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
+    final result = await FilePicker.platform.pickFiles(
+      allowMultiple: true,
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'pdf', 'png'],
+    );
     print("file  frile  ${result?.files.length}");
     List<MultipartFile> list = [];
     for (int i = 0; i < result!.files.length; i++) {
@@ -918,13 +721,15 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
     ApiServices.postTaskImage(list, taskDetailsList.id,
             taskDetailsList.projectId, taskDetailsList.registerUserId)
         .then((value) {
-      setState(() {
-        print("value File :${value.data!.length}");
-        for (int i = 0; i < value.data!.length; i++) {
-          taskImageList.add(value.data![i]);
-        }
-        Navigator.pop(context);
-      });
+      if (value != null) {
+        setState(() {
+          print("value File :${value.data!.length}");
+          for (int i = 0; i < value.data!.length; i++) {
+            taskImageList.add(value.data![i]);
+          }
+          Navigator.pop(context);
+        });
+      }
     });
   }
 
@@ -996,9 +801,10 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                         borderRadius: BorderRadius.all(
                                             Radius.circular(5)),
                                         image: DecorationImage(
-                                            image: NetworkImage(
-                                                taskImageList[index].image ??
-                                                    ""),
+                                            image: NetworkImage((AppString
+                                                    .basePath) +
+                                                (taskImageList[index].image ??
+                                                    "")),
                                             fit: BoxFit.cover)),
                                   )
                                 : Icon(
@@ -1036,6 +842,263 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
           value,
           overflow: TextOverflow.clip,
           style: Utils.regularTextStyle(fontSize: 2.5.w),
+        ),
+      ],
+    );
+  }
+
+  Widget addIssue() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () {
+            if (taskDetailsList.totalWork != null) {
+              Navigator.push(context, MaterialPageRoute(builder: (_) {
+                return TaskIssueScreen(
+                  taskDetailsList: taskDetailsList,
+                  tag: 0,
+                );
+              })).then((value) {
+                if (value != null) {
+                  setState(() {
+                    issueList.add(value);
+                  });
+                }
+              });
+            } else {
+              Toasts.showToast(
+                  "Please update ${taskDetailsList.title} task details.");
+            }
+          },
+          child: Padding(
+            padding: EdgeInsets.only(top: 5.w, bottom: 3.w),
+            child: Text(
+              "+ Add issues",
+              style: Utils.regularTextStyle(
+                  fontSize: AppDimens.large_font, color: AppColor.textColor3),
+            ),
+          ),
+        ),
+        SizedBox(
+          height: 53.w,
+          width: 88.w,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: const BouncingScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: issueList.length,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              var outputFormat = DateFormat("hh:mm a, dd MMM, yyyy");
+              var outputDate = outputFormat.format(issueList[index].createdAt!);
+              return Container(
+                width: 80.w,
+                child: Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(4.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                      color: AppColor.green1,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      issueList[index].issueCategory!.title ??
+                                          "",
+                                      overflow: TextOverflow.clip,
+                                      style: Utils.regularTextStyle(
+                                          color: AppColor.green),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 5.w,
+                                ),
+                                Container(
+                                  width: 20.w,
+                                  decoration: BoxDecoration(
+                                      color: AppColor.btnUpdateBg,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      issueList[index].task!.title ?? "",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.clip,
+                                      style: Utils.regularTextStyle(
+                                          color: AppColor.textColor2),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (_) {
+                                  return TaskIssueScreen(
+                                    taskDetailsList: taskDetailsList,
+                                    tag: 0,
+                                    issueData: issueList[index],
+                                  );
+                                })).then((value) {
+                                  if (value != null) {
+                                    setState(() {
+                                      issueList[index] = value;
+                                    });
+                                  }
+                                });
+                              },
+                              child: SizedBox(
+                                  height: 7.w,
+                                  width: 8.w,
+                                  child: Image.asset(ImageAsset.icons_more)),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 3.w,
+                        ),
+                        Text(
+                          issueList[index].title ?? "",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: Utils.regularTextStyle(
+                              color: AppColor.textColor2),
+                        ),
+                        SizedBox(
+                          height: 3.w,
+                        ),
+                        Row(
+                          children: [
+                            Container(
+                              height: 10.w,
+                              width: 10.w,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: AppColor.black, width: 1)),
+                              child: issueList[index].teamDetails?.image == null
+                                  ? Icon(
+                                      Icons.person,
+                                      size: 8.w,
+                                    )
+                                  : CircleAvatar(
+                                      radius: 200.0,
+                                      backgroundImage: NetworkImage(AppString
+                                              .basePath +
+                                          issueList[index].teamDetails?.image),
+                                    ),
+                            ),
+                            SizedBox(
+                              width: 2.w,
+                            ),
+                            Text(
+                              issueList[index].teamDetails?.name ?? "",
+                              style: Utils.regularTextStyle(
+                                  color: AppColor.textColor8, fontSize: 2.4.w),
+                            ),
+                            SizedBox(
+                              width: 2.w,
+                            ),
+                            Container(
+                              height: 8.w,
+                              width: 8.w,
+                              decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image:
+                                          AssetImage(ImageAsset.iconSchedule))),
+                            ),
+                            SizedBox(
+                              width: 2.w,
+                            ),
+                            Text(
+                              outputDate,
+                              style: Utils.regularTextStyle(
+                                  color: AppColor.textColor8, fontSize: 2.4.w),
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 3.w,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(context,
+                                    MaterialPageRoute(builder: (_) {
+                                  return IssueDetailsScreen(
+                                    data: issueList[index],
+                                  );
+                                }));
+                              },
+                              child: Container(
+                                height: 5.w,
+                                width: 5.w,
+                                decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                        image:
+                                            AssetImage(ImageAsset.iconChat))),
+                              ),
+                            ),
+                            issueList[index].status == 1
+                                ? InkWell(
+                                    onTap: () {
+                                      showMyDialog(context, () {
+                                        ApiServices.poseIssueClose(
+                                                issueList[index].id!)
+                                            .then((value) {
+                                          setState(() {
+                                            issueList[index].status = value;
+                                          });
+                                        });
+                                        Navigator.of(context).pop();
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(5)),
+                                          border: Border.all(
+                                              color: AppColor.red1, width: 2)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "Close issue",
+                                          style: Utils.regularTextStyle(
+                                              color: AppColor.red1),
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "Close issue",
+                                      style: Utils.regularTextStyle(
+                                          color: AppColor.red1),
+                                    )),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ],
     );

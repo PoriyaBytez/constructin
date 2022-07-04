@@ -59,7 +59,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   List<CustomTeamList> allTeamMember = [];
   List<CustomTeamList> teamList = [];
   List<TeamDetails> assignTeamMember = [];
-
   bool selectStartDate = false;
   bool selectEndDate = false;
   bool selectTotal = false;
@@ -90,7 +89,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         allTeamMember = value.data!
             .map((contact) => CustomTeamList(teamDataList: contact))
             .toList();
-
         if (value.data != null) {
           for (int i = 0; i < value.data!.length; i++) {
             print(" task Right ${value.data![i].taskRight}");
@@ -116,6 +114,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     totalController.text =
         widget.totalWork == "null" ? '' : widget.totalWork.toString();
     if (widget.unitValue != 0) {
+      selectUnit = widget.unitValue - 1;
       unitListValue = unitList[widget.unitValue - 1];
     }
   }
@@ -415,7 +414,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                           child: ListView.builder(
                               itemCount: assignTeamMember.length,
                               shrinkWrap: true,
-                              reverse: true,
                               itemBuilder: (context, index) {
                                 return Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -442,7 +440,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                                     : CircleAvatar(
                                                         radius: 200.0,
                                                         backgroundImage:
-                                                            NetworkImage(
+                                                            NetworkImage(AppString
+                                                                    .basePath +
                                                                 assignTeamMember[
                                                                         index]
                                                                     .image),
@@ -452,17 +451,23 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                             width: 5.w,
                                           ),
                                           Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                assignTeamMember[index].name ?? "-",
+                                                assignTeamMember[index].name ??
+                                                    "-",
                                                 overflow: TextOverflow.clip,
                                                 style: Utils.regularTextStyle(
                                                     color: AppColor.black),
                                               ),
-                                              SizedBox(height: 1.w,),
+                                              SizedBox(
+                                                height: 1.w,
+                                              ),
                                               Text(
-                                                assignTeamMember[index].mobile ?? "-",
+                                                assignTeamMember[index]
+                                                        .mobile ??
+                                                    "-",
                                                 overflow: TextOverflow.clip,
                                                 style: Utils.regularTextStyle(
                                                     color: AppColor.gray),
@@ -531,7 +536,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                   selectTotal = false;
                                 });
                               }
-                              if (selectUnit == 0) {
+                              if (unitListValue == "") {
                                 setState(() {
                                   isUnit = true;
                                 });
@@ -552,9 +557,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         int.parse(totalController.text),
                                         selectUnit)
                                     .then((value) {
-                                  // print("value mm ${value.endDate}");
                                   Navigator.pop(context, value);
-                                  getTeamList();
+                                  // getTeamList();
                                 });
                               }
                             },
@@ -734,10 +738,11 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                               : CircleAvatar(
                                                   radius: 200.0,
                                                   backgroundImage: NetworkImage(
-                                                      teamList[index]
-                                                          .teamDataList
-                                                          .teamDetails
-                                                          ?.image),
+                                                      AppString.basePath +
+                                                          teamList[index]
+                                                              .teamDataList
+                                                              .teamDetails
+                                                              ?.image),
                                                 ),
                                         ),
                                         SizedBox(
@@ -1049,6 +1054,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                       currentIndex = null;
                                       teamList.add(
                                           CustomTeamList(teamDataList: value));
+                                      allTeamMember.add(
+                                          CustomTeamList(teamDataList: value));
                                     });
                                     Navigator.pop(context);
                                   });
@@ -1202,9 +1209,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                         c[index].contact.displayName[1].toUpperCase()),
                     style: TextStyle(color: Colors.white)),
               ),
-        title: Text(c[index].contact.displayName,overflow: TextOverflow.clip,style: Utils.regularTextStyle(color: AppColor.black)),
+        title: Text(c[index].contact.displayName,
+            overflow: TextOverflow.clip,
+            style: Utils.regularTextStyle(color: AppColor.black)),
         subtitle: c[index].contact.phones.isNotEmpty
-            ? Text(c[index].contact.phones[0].number,overflow: TextOverflow.clip,style: Utils.regularTextStyle(color: AppColor.gray))
+            ? Text(c[index].contact.phones[0].number,
+                overflow: TextOverflow.clip,
+                style: Utils.regularTextStyle(color: AppColor.gray))
             : Text(''),
         trailing: Checkbox(
             activeColor: AppColor.mainColor,

@@ -44,9 +44,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   String? code1 = "91";
   int? type = 1;
   String? deviceId;
-
   String verificationIdReceiver = "";
-
   LoginBloc loginBloc = LoginBloc();
 
   /// OTP Widget
@@ -98,11 +96,11 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           listener: (context, state) {
             if (state is LoginLoading) {
             } else if (state is LoginSuccess) {
-              setState(() async {
-                PreferencesManager.setString(
-                    PreferencesKey.userModel, jsonEncode(state.userModel));
-                var projectModel = await ApiServices.getProjectList();
-                if (projectModel!.data!.isEmpty) {
+              PreferencesManager.setString(
+                  PreferencesKey.userModel, jsonEncode(state.userModel));
+              AppString.basePath = state.userModel?.data?.basePath ?? "";
+              ApiServices.getProjectList().then((value) {
+                if (value!.data!.isEmpty) {
                   print("home");
                   Get.offAndToNamed(RouteHelper.home);
                 } else {
@@ -524,44 +522,40 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   Future<void> verifyPhoneNumber(BuildContext context) async {
     print("no : $code${numberController.text}");
 
-    try {
-      await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: "$code${numberController.text}",
-        verificationCompleted: (PhoneAuthCredential credential) async {
-          // await FirebaseAuth.instance.signInWithCredential(credential);
-        },
-        verificationFailed: (FirebaseAuthException e) {
-          if (e.code == 'invalid-phone-number') {
-            setState(() {
-              isLoading = false;
-            });
-            Toasts.showToast('phone number is not valid.');
-            print('The provided phone number is not valid.');
-          } else {
-            setState(() {
-              isLoading = false;
-            });
-            Toasts.showToast('Re-try after same time.');
-          }
-        },
-        codeSent: (String verificationId, int? resendToken) async {
-          // Toasts.showToast(verificationId.toString());
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: "$code${numberController.text}",
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        // await FirebaseAuth.instance.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        if (e.code == 'invalid-phone-number') {
           setState(() {
-            varification = true;
             isLoading = false;
-            verificationIdReceiver = verificationId;
-            startTimer();
           });
-          await initSmsListener();
-        },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
-          Toasts.showToast("code Auto Retrieval Timeout");
-        },
-      );
-    } catch (e) {
-      print("error : ${e.toString()}");
-    }
+          Toasts.showToast('phone number is not valid.');
+          print('The provided phone number is not valid.');
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+          Toasts.showToast('Re-try after same time.');
+        }
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        // Toasts.showToast(verificationId.toString());
+        setState(() {
+          varification = true;
+          isLoading = false;
+          verificationIdReceiver = verificationId;
+          startTimer();
+        });
+        await initSmsListener();
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
+        Toasts.showToast("code Auto Retrieval Timeout");
+      },
+    );
   }
 
   Future<void> initSmsListener() async {

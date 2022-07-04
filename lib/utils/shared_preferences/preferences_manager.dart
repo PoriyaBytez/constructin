@@ -38,7 +38,6 @@ class PreferencesManager {
   }
 
   /// put String
-
   static Future<bool>? setString(String key, String value) {
     if (_preferences == null) return null;
     return _preferences!.setString(key, value);

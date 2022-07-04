@@ -11,6 +11,7 @@ import 'package:constructin/utils/shared_preferences/preferences_key.dart';
 import 'package:constructin/utils/toasts.dart';
 import 'package:dio/dio.dart';
 
+import '../model/comment_model.dart';
 import '../model/issue_model.dart';
 import '../model/project_model.dart';
 import '../model/task_category_model.dart';
@@ -20,6 +21,8 @@ import 'shared_preferences/preferences_manager.dart';
 
 class ApiServices {
   static const String base = "https://admin.constructin.net/api/";
+
+  // static const String base = "192.168.1.17:8000/api/";
   static const String login = 'login';
   static const String projectType = 'projectType';
   static const String projectCreate = 'projectCreate';
@@ -47,6 +50,10 @@ class ApiServices {
       'issueCategoryMemberWiseEdit';
   static const String createIssue = 'createIssue';
   static const String issueList = 'issueList';
+  static const String issueRight = 'issueRight';
+  static const String issueClose = 'issueClose';
+  static const String createComment = 'createComment';
+  static const String commentList = 'commentList';
 
   static Dio getDio() {
     String strUserData = PreferencesManager.getString(PreferencesKey.userModel);
@@ -174,10 +181,6 @@ class ApiServices {
   /// Add Member in team
   static Future<dynamic> postAddMember(
       String name, String countryCode, String mobile, int? projectID) async {
-    print("name ${name}");
-    print("countryCode ${countryCode}");
-    print("mobile ${mobile.replaceAll(" ", "")}");
-    print("projectId ${projectID}");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -213,8 +216,6 @@ class ApiServices {
 
   ///  taskDetails date wise
   static Future<dynamic> getDetails(int taskId, String date) async {
-    print("id : $taskId");
-    print("date : $date");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -225,12 +226,7 @@ class ApiServices {
         data: {"taskId": taskId.toString(), "date": date});
     if (response.statusCode == 200) {
       print("response: DetailsData ${response.data}");
-      if (response.data["data"] == null) {
-        Toasts.showToast(response.data["messages"]);
-        return false;
-      } else {
-        return TaskDetailsData.fromJson(response.data["data"]);
-      }
+      return TaskDetailsData.fromJson(response.data["data"]);
     } else {
       print("response: DetailsData ${response.data['message']}");
       throw Exception('Failed to post.');
@@ -240,9 +236,6 @@ class ApiServices {
   /// Role Assignee
   static Future<bool> postRoleAssignee(
       int registerId, int projectId, dynamic projectRights) async {
-    print("registerId : $registerId");
-    print("projectId : $projectId");
-    print("projectRights : $projectRights");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -286,9 +279,6 @@ class ApiServices {
   /// Add Post Task
   static Future<TaskModel> postTask(
       int projectId, int taskCategoryId, String title) async {
-    print("projectId ${projectId}");
-    print("taskCategoryId ${taskCategoryId}");
-    print("title ${title}");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -312,7 +302,6 @@ class ApiServices {
 
   /// Task List
   static Future<TaskModel> getTaskList(int projectId) async {
-    print("id services  project : $projectId");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -333,11 +322,6 @@ class ApiServices {
   /// Task Update Details
   static Future<TaskDetailsList> updateTask(int id, String startDate,
       String endDate, int totalWork, int unitId) async {
-    print("id :$id");
-    print("startDate :$startDate");
-    print("endDate :$endDate");
-    print("totalWork :$totalWork");
-    print("unitId :$unitId");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -380,33 +364,35 @@ class ApiServices {
   }
 
   /// post Task Details Data Progress
-  static Future<TaskDetailsModel> postProgress(TaskDetailsData data) async {
+  static Future<TaskDetailsModel>? postProgress(TaskDetailsData data) async {
     var bodydata = data.toJson();
     var body = jsonEncode(bodydata);
-    Dio dio = getDio();
-    dio.interceptors.add(InterceptorsWrapper(
-      onResponse: (e, handler) {
-        handler.next(e);
-      },
-    ));
-    final response = await dio.post(base + taskProgress, data: body);
-    if (response.statusCode == 200) {
-      print("response: DetailsModel ${response.data}");
-      Toasts.showToast(response.data['message']);
-      return TaskDetailsModel.fromJson(response.data);
-    } else {
-      print("response: DetailsModel ${response.data['message']}");
-      throw Exception('Failed to post.');
+    TaskDetailsModel taskDetailsModel = TaskDetailsModel();
+    try {
+      Dio dio = getDio();
+      dio.interceptors.add(InterceptorsWrapper(
+        onResponse: (e, handler) {
+          handler.next(e);
+        },
+      ));
+      final response = await dio.post(base + taskProgress, data: body);
+      if (response.statusCode == 200) {
+        print("response: DetailsModel ${response.data}");
+        Toasts.showToast(response.data['message']);
+        taskDetailsModel = TaskDetailsModel.fromJson(response.data);
+      } else {
+        print("response: DetailsModel ${response.data['message']}");
+        throw Exception('Failed to post.');
+      }
+    } on DioError catch (e) {
+      print("DioError : ${e.message}");
     }
+    return taskDetailsModel;
   }
 
   /// post Task Right
   static Future<dynamic> postTaskRight(
       int taskId, int projectId, int registerUserId) async {
-    print("taskId $taskId");
-    print("projectId $projectId");
-    print("registerUserId $registerUserId");
-
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -421,12 +407,6 @@ class ApiServices {
     if (response.statusCode == 200) {
       print("response: TaskRight ${response.data}");
       Toasts.showToast(response.data["message"]);
-      // if (response.data["data"] == null) {
-      //   Toasts.showToast(response.data["messages"]);
-      //   return false;
-      // } else {
-      //   return TaskDetailsData.fromJson(response.data["data"]);
-      // }
     } else {
       print("response: TaskRight ${response.data['message']}");
       throw Exception('Failed to post.');
@@ -451,7 +431,6 @@ class ApiServices {
       response = await dio.post(base + taskCategoryMemberWiseEdit,
           data: {"id": id, "title": title});
     }
-
     if (response.statusCode == 200) {
       print("response: TaskRight ${response.data}");
       Toasts.showToast(response.data["message"]);
@@ -493,10 +472,6 @@ class ApiServices {
     String? companyName,
     int? currentRoleId,
   ) async {
-    print("image $image");
-    print("name $name");
-    print("companyName $companyName");
-    print("currentRoleId $currentRoleId");
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -548,32 +523,34 @@ class ApiServices {
   }
 
   /// get  task Image List
-  static Future<TaskImageModel> postTaskImage(List<MultipartFile> list,
+  static Future<TaskImageModel?> postTaskImage(List<MultipartFile> list,
       int? taskId, int? projectId, int? registerUserId) async {
-    print("image $list");
-    print("taskId $taskId");
-    print("projectId $projectId");
-    print("registerUserId $registerUserId");
-    Dio dio = getDio();
-    dio.interceptors.add(InterceptorsWrapper(
-      onResponse: (e, handler) {
-        handler.next(e);
-      },
-    ));
-    final response = await dio.post(base + taskImage,
-        data: FormData.fromMap({
-          "image[]": list,
-          "taskId": taskId,
-          "projectId": projectId,
-          "registerUserId": registerUserId
-        }));
-    if (response.statusCode == 200) {
-      print("response: taskImage ${response.data}");
-      Toasts.showToast(response.data['message']);
-      return TaskImageModel.fromJson(response.data);
-    } else {
-      throw Exception('Failed to post.');
+    try {
+      Dio dio = getDio();
+      dio.interceptors.add(InterceptorsWrapper(
+        onResponse: (e, handler) {
+          handler.next(e);
+        },
+      ));
+      final response = await dio.post(base + taskImage,
+          data: FormData.fromMap({
+            "image[]": list,
+            "taskId": taskId,
+            "projectId": projectId,
+            "registerUserId": registerUserId
+          }));
+      if (response.statusCode == 200) {
+        print("response: taskImage ${response.data}");
+        Toasts.showToast(response.data['message']);
+        return TaskImageModel.fromJson(response.data);
+      } else {
+        throw Exception('Failed to post.');
+      }
+    } on DioError catch (e) {
+      print(e.message);
+      print(e.type);
     }
+    return null;
   }
 
   /// Issue Category List
@@ -630,22 +607,33 @@ class ApiServices {
   }
 
   /// Post Issue Member Wise
-  static Future<IssueModel> postIssue(
-      String projectId, String issueCategoryId, String title) async {
+  static Future<IssueData> postIssue(
+      String projectId,
+      String taskId,
+      String issueCategoryId,
+      String title,
+      String tage,
+      List<MultipartFile> list,
+      String registerUserIdes) async {
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
         handler.next(e);
       },
     ));
-    final response = await dio.post(base + createIssue, data: {
-      "projectId": projectId,
-      "issueCategoryId": issueCategoryId,
-      "title": title,
-    });
+    final response = await dio.post(base + createIssue,
+        data: FormData.fromMap({
+          "projectId": projectId,
+          "taskId": taskId,
+          "issueCategoryId": issueCategoryId,
+          "title": title,
+          "tag": tage,
+          "image[]": list,
+          "registerUserIdes": registerUserIdes
+        }));
     if (response.statusCode == 200) {
-      print("response: IssueModel ${response.data}");
-      return IssueModel.fromJson(response.data);
+      Toasts.showToast(response.data['message']);
+      return IssueData.fromJson(response.data["data"]);
     } else {
       print("response: IssueModel ${response.data['message']}");
       throw Exception('Failed to post.');
@@ -653,9 +641,9 @@ class ApiServices {
   }
 
   /// Issue List
-
-  static Future<TaskCategoryModel> getIssueList(int id, int type) async {
+  static Future<IssueModel> getIssueList(int id, int type) async {
     Dio dio = getDio();
+    print("id : $id");
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
         handler.next(e);
@@ -667,9 +655,101 @@ class ApiServices {
     });
     if (response.statusCode == 200) {
       print("response: IssueCategoryList ${response.data}");
-      return TaskCategoryModel.fromJson(response.data);
+      return IssueModel.fromJson(response.data);
     } else {
       print("response: IssueCategoryList ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+  }
+
+  /// Issue Right
+
+  static Future<TeamData> postIssueRight(
+      int issueId, int projectId, String registerUserId) async {
+    Dio dio = getDio();
+
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + issueRight, data: {
+      "issueId": issueId,
+      "projectId": projectId,
+      "registerUserId": registerUserId,
+    });
+    if (response.statusCode == 200) {
+      print("response: Member ${response.data}");
+      Toasts.showToast(response.statusMessage);
+      return TeamData.fromJson(response.data);
+    } else {
+      print("response: Member ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+  }
+
+  /// Issue close
+  static Future<int> poseIssueClose(int id) async {
+    Dio dio = getDio();
+    print("id : $id");
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + issueClose, data: {
+      "issueId": id,
+    });
+    if (response.statusCode == 200) {
+      print("response: IssueCategoryList ${response.data}");
+      return 0;
+    } else {
+      print("response: IssueCategoryList ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+  }
+
+  /// crate Comment
+  static Future<CommentData> poseComment(int projectId, int issueId,
+      String taskId, dynamic image, String comment) async {
+    Dio dio = getDio();
+
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + createComment,
+        data: FormData.fromMap({
+          "projectId": projectId,
+          "issueId": issueId,
+          "taskId": taskId,
+          "image": image,
+          "comment": comment
+        }));
+    if (response.statusCode == 200) {
+      print("response: CommentModel ${response.data}");
+      return CommentData.fromJson(response.data["data"]);
+    } else {
+      print("response: CommentModel ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+  }
+
+  static Future<CommentModel> getCommentList(int id) async {
+    Dio dio = getDio();
+
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + commentList, data: {"issueId": id});
+    if (response.statusCode == 200) {
+      print("response: CommentModel ${response.data}");
+      return CommentModel.fromJson(response.data);
+    } else {
+      print("response: CommentModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }

@@ -8,6 +8,7 @@ class TeamMemberInitial extends TeamMemberState {
   @override
   List<Object> get props => [];
 }
+
 class TeamMemberLoading extends TeamMemberState {
   @override
   // TODO: implement props

@@ -13,7 +13,8 @@ class TeamMemberBloc extends Bloc<TeamMemberEvent, TeamMemberState> {
     on<TeamMemberPressed>((event, emit) async {
       emit(TeamMemberLoading());
       try {
-        TeamModel teamModel = await ApiServices.getTeamMemberList(event.projectId);
+        TeamModel teamModel =
+            await ApiServices.getTeamMemberList(event.projectId);
         emit(TeamMemberSuccess(teamModel: teamModel));
       } catch (e) {
         emit(TeamMemberFailure(error: e.toString()));

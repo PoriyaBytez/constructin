@@ -19,19 +19,20 @@ class CommandTextFormField extends StatelessWidget {
   FormFieldValidator<String>? validator;
   GestureTapCallback? onTab;
 
-  CommandTextFormField({Key? key,
-    this.title,
-    this.hint,
-    this.focusNode,
-    this.controller,
-    this.textInputType,
-    this.onChange,
-    this.readOnly = false,
-    this.validator,
-    this.onTab,
-    this.maxLines = 1,
-    this.focusColor,
-    this.textInputAction})
+  CommandTextFormField(
+      {Key? key,
+      this.title,
+      this.hint,
+      this.focusNode,
+      this.controller,
+      this.textInputType,
+      this.onChange,
+      this.readOnly = false,
+      this.validator,
+      this.onTab,
+      this.maxLines = 1,
+      this.focusColor,
+      this.textInputAction})
       : super(key: key);
 
   @override
@@ -56,11 +57,8 @@ class CommandTextFormField extends StatelessWidget {
                 color: AppColor.textColor, fontSize: AppDimens.medium_font),
             decoration: InputDecoration(
                 labelText: hint,
-                // hintText: hint,
                 labelStyle: Utils.regularTextStyle(
                     color: AppColor.hintText, fontSize: AppDimens.medium_font),
-                // hintStyle: Utils.regularTextStyle(
-                //     color: AppColor.hintText, fontSize: AppDimens.medium_font),
                 fillColor: AppColor.textFormFieldBg,
                 filled: true,
                 enabledBorder: OutlineInputBorder(

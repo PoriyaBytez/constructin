@@ -5,6 +5,7 @@ import 'package:constructin/model/user_model.dart';
 import 'package:constructin/utils/api_services.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
+import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/shared_preferences/preferences_key.dart';
 import 'package:constructin/utils/unil.dart';
 import 'package:constructin/widget/comman_widget.dart';
@@ -185,8 +186,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           )
                                         : CircleAvatar(
                                             radius: 200.0,
-                                            backgroundImage:
-                                                NetworkImage(imageUrl),
+                                            backgroundImage: NetworkImage(
+                                                AppString.basePath + imageUrl),
                                           )
                                     : CircleAvatar(
                                         backgroundImage: FileImage(imageFile!),
@@ -328,7 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           strColor: AppColor.white,
                           name: 'Save',
                           onPress: () {
-                            if (selectRole == 0) {
+                            if (roleListValue == '') {
                               setState(() {
                                 selectRoles = true;
                               });

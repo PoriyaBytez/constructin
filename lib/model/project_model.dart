@@ -17,7 +17,8 @@ class ProjectModel {
   String? message;
 
   factory ProjectModel.fromJson(Map<String, dynamic> json) => ProjectModel(
-        data: List<ProjectData>.from(json["data"].map((x) => ProjectData.fromJson(x))),
+        data: List<ProjectData>.from(
+            json["data"].map((x) => ProjectData.fromJson(x))),
         success: json["success"],
         message: json["message"],
       );
@@ -41,6 +42,8 @@ class ProjectData {
     this.deletedAt,
     this.createdAt,
     this.updatedAt,
+    this.issues_count,
+    this.members_count,
     this.projectDetail,
   });
 
@@ -54,6 +57,8 @@ class ProjectData {
   dynamic deletedAt;
   dynamic createdAt;
   dynamic updatedAt;
+  int? issues_count;
+  int? members_count;
   ProjectDetail? projectDetail;
 
   factory ProjectData.fromJson(Map<String, dynamic> json) => ProjectData(
@@ -67,6 +72,8 @@ class ProjectData {
         deletedAt: json["deleted_at"],
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
+        issues_count: json["issues_count"],
+        members_count: json["members_count"],
         projectDetail: ProjectDetail.fromJson(json["project_detail"]),
       );
 
@@ -81,6 +88,8 @@ class ProjectData {
         "deleted_at": deletedAt,
         "created_at": createdAt,
         "updated_at": updatedAt,
+        "issues_count": issues_count,
+        "members_count": members_count,
         "project_detail": projectDetail?.toJson(),
       };
 }

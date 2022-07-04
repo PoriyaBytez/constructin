@@ -14,6 +14,7 @@ import '../../model/user_model.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
+import '../../utils/app_string.dart';
 import '../../utils/shared_preferences/preferences_key.dart';
 import '../../utils/shared_preferences/preferences_manager.dart';
 import '../../utils/unil.dart';
@@ -44,8 +45,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
     projectListBloc.add(ProjectListPressed());
     String body = PreferencesManager.getString(PreferencesKey.userModel);
     userModel = UserModel.fromJson(jsonDecode(body));
-    imageUrl = userModel.data?.image ?? '';
-
+    AppString.basePath = userModel.data?.basePath ?? "";
+    imageUrl = userModel.data?.image ?? "";
     super.initState();
   }
 
@@ -91,9 +92,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         Navigator.push(context, MaterialPageRoute(builder: (_) {
                           return ProfileScreen();
                         })).then((value) {
-                          setState(() {
-                            imageUrl = value;
-                          });
+                          if (value != "") {
+                            setState(() {
+                              imageUrl = AppString.basePath + value;
+                            });
+                          }
                         });
                       },
                       child: Row(
@@ -112,7 +115,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                   )
                                 : CircleAvatar(
                                     radius: 200.0,
-                                    backgroundImage: NetworkImage(imageUrl),
+                                    backgroundImage: NetworkImage(
+                                        AppString.basePath + imageUrl),
                                   ),
                           ),
                           SizedBox(
@@ -267,7 +271,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                                 data![index]
                                                                     .projectId,
                                                           );
-                                                        }));
+                                                        })).then((value) {
+                                                          data?[index]
+                                                                  .members_count =
+                                                              value;
+                                                          setState(() {});
+                                                        });
                                                       } else {
                                                         Toasts.showToast(
                                                             "You do not have access");
@@ -333,10 +342,12 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                     icon: ImageAsset
                                                         .iconProgress),
                                                 commandTextWithIcon(
-                                                    text: "-% issues",
+                                                    text:
+                                                        "${data?[index].issues_count ?? "0"} - issues",
                                                     icon: ImageAsset.iconIssue),
                                                 commandTextWithIcon(
-                                                    text: "- members",
+                                                    text:
+                                                        "${data?[index].members_count ?? "0"} - members",
                                                     icon:
                                                         ImageAsset.iconMember),
                                               ],

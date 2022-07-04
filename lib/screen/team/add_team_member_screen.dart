@@ -167,12 +167,12 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
                   ),
                 ),
               ),
-              SearchTextFormField(labelText: "Search Party",
+              SearchTextFormField(
+                  labelText: "Search Party",
                   onChanged: (value) {
                     onSearchTextChanged(value);
                   },
-                  searchController
-                      :searchController),
+                  searchController: searchController),
               Center(
                 child: Text(
                   "OR",
@@ -488,7 +488,7 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
           style: Utils.regularTextStyle(color: AppColor.black)),
       subtitle: c[index].contact.phones.isNotEmpty
           ? Text(c[index].contact.phones[0].number,
-          overflow: TextOverflow.clip,
+              overflow: TextOverflow.clip,
               style: Utils.regularTextStyle(color: AppColor.gray))
           : Text(''),
       trailing: Checkbox(

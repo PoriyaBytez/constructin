@@ -6,10 +6,11 @@ import '../utils/app_color.dart';
 import '../utils/app_dimens.dart';
 import '../utils/unil.dart';
 
-Widget commandButton({required String name,
-  required Color bg,
-  required VoidCallback onPress,
-  required Color strColor}) {
+Widget commandButton(
+    {required String name,
+    required Color bg,
+    required VoidCallback onPress,
+    required Color strColor}) {
   return InkWell(
     onTap: onPress,
     child: Container(
@@ -62,9 +63,7 @@ Widget appBar(String title, GestureTapCallback? onTap) {
       color: AppColor.white,
       boxShadow: const <BoxShadow>[
         BoxShadow(
-            color: AppColor.bg,
-            blurRadius: 10.0,
-            offset: Offset(0.0, 0.75))
+            color: AppColor.bg, blurRadius: 10.0, offset: Offset(0.0, 0.75))
       ],
     ),
     child: Padding(
@@ -87,8 +86,7 @@ Widget appBar(String title, GestureTapCallback? onTap) {
           Text(
             title,
             style: Utils.mediumTextStyle(
-                color: AppColor.textColor,
-                fontSize: AppDimens.large_font),
+                color: AppColor.textColor, fontSize: AppDimens.large_font),
           ),
         ],
       ),
@@ -96,18 +94,19 @@ Widget appBar(String title, GestureTapCallback? onTap) {
   );
 }
 
-Widget planHorizontalList(int selectIndex1,int index,GestureTapCallback? onTap,) {
+Widget planHorizontalList(
+  int selectIndex1,
+  int index,
+  GestureTapCallback? onTap,
+) {
   return InkWell(
     onTap: onTap,
     child: Padding(
       padding: EdgeInsets.only(left: 2.w, right: 2.w, top: 6.w),
       child: Container(
         decoration: BoxDecoration(
-            color: selectIndex1 == index
-                ? AppColor.cBg
-                : AppColor.white,
-            borderRadius:
-            BorderRadius.all(Radius.circular(10.0)),
+            color: selectIndex1 == index ? AppColor.cBg : AppColor.white,
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
             border: Border.all(
                 color: selectIndex1 == index
                     ? AppColor.textColor2
@@ -115,18 +114,54 @@ Widget planHorizontalList(int selectIndex1,int index,GestureTapCallback? onTap,)
                 width: 2)),
         child: Center(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                Utils.list[index],
-                style: Utils.mediumTextStyle(
-                    color: selectIndex1 == index
-                        ? AppColor.textColor2
-                        : AppColor.textColor4),
-              ),
-            )),
+          padding: const EdgeInsets.all(8.0),
+          child: Text(
+            Utils.list[index],
+            style: Utils.mediumTextStyle(
+                color: selectIndex1 == index
+                    ? AppColor.textColor2
+                    : AppColor.textColor4),
+          ),
+        )),
       ),
     ),
   );
 }
 
-
+Future<void> showMyDialog(BuildContext context, VoidCallback? onPressed) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Construct In',
+          style: Utils.mediumTextStyle(
+              color: AppColor.mainColor, fontSize: AppDimens.large_font),
+        ),
+        content: Text(
+          'are you sure,close issues?',
+          style: Utils.regularTextStyle(color: AppColor.black),
+        ),
+        actions: [
+          TextButton(
+            child: Text(
+              'No',
+              style: Utils.mediumTextStyle(color: AppColor.black),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text(
+              'Yas',
+              style: Utils.mediumTextStyle(color: AppColor.black),
+            ),
+            onPressed: onPressed,
+          ),
+        ],
+      );
+    },
+  );
+}

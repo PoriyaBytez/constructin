@@ -11,13 +11,17 @@ import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../helper/route_helper.dart';
+import '../../model/issue_model.dart';
 import '../../model/project_model.dart';
 import '../../model/task_model.dart';
+import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
 import '../../utils/unil.dart';
 import '../../widget/comman_widget.dart';
+import '../task/task_issue_screen.dart';
+import '../task/task_review_screen.dart';
 import 'attendance_screen.dart';
 import 'more_screen.dart';
 
@@ -38,6 +42,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   int? projectId;
   List taskRight = [];
   late ProjectData projectData;
+  List<IssueData> issueList = [];
 
   @override
   void initState() {
@@ -46,6 +51,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     taskRight = projectData.projectRights?.split(',');
     projectId = projectData.projectId;
     taskBloc?.add(TaskPressed(projectId: projectId!));
+    ApiServices.getIssueList(projectData.projectId!, 2).then((value) {
+      setState(() {
+        issueList = value.data!;
+      });
+    });
     super.initState();
   }
 
@@ -163,7 +173,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           )))
                     : selectIndex == 3
                         ? (taskRight.contains("3")
-                            ? IssuesScreen()
+                            ? widgetIssueList(issueList, setState)
                             : Expanded(
                                 child: Center(
                                 child: Text("You not access Issues"),
@@ -190,7 +200,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
               child: Container(
                 height: 20.w,
                 width: double.infinity,
-                decoration: BoxDecoration(color: AppColor.white),
+                decoration: BoxDecoration(
+                  color: AppColor.white,
+                  boxShadow: const <BoxShadow>[
+                    BoxShadow(
+                        color: AppColor.bg,
+                        blurRadius: 10.0,
+                        offset: Offset(0.0, 0.75))
+                  ],
+                ),
                 child: Padding(
                   padding: EdgeInsets.only(left: 5.w, right: 5.w),
                   child: Row(
@@ -256,24 +274,24 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
         floatingActionButton: taskDetailsList.isEmpty
             ? Container()
             : selectIndex == 1
-                ? InkWell(
-                    onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) {
-                        return AddTaskScreen(
-                          projectId: projectId!,
-                        );
-                      })).then((value) {
-                        if (value != null) {
-                          for (int i = 0; i < value.data.length; i++) {
-                            setState(() {
-                              taskDetailsList.add(value.data[i]);
-                            });
+                ? Padding(
+                    padding: EdgeInsets.only(bottom: 22.w),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) {
+                          return AddTaskScreen(
+                            projectId: projectId!,
+                          );
+                        })).then((value) {
+                          if (value != null) {
+                            for (int i = 0; i < value.data.length; i++) {
+                              setState(() {
+                                taskDetailsList.add(value.data[i]);
+                              });
+                            }
                           }
-                        }
-                      });
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.only(bottom: 22.w),
+                        });
+                      },
                       child: Container(
                           height: 10.w,
                           width: 30.w,
@@ -305,7 +323,57 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           )),
                     ),
                   )
-                : Container(),
+                : selectIndex == 3
+                    ? Padding(
+                        padding: EdgeInsets.only(bottom: 22.w),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (_) {
+                              return TaskIssueScreen(
+                                tag: 1,
+                                projectID: projectId,
+                              );
+                            })).then((value) {
+                              if (value != null) {
+                                setState(() {
+                                  issueList.add(value);
+                                });
+                              }
+                            });
+                          },
+                          child: Container(
+                              height: 10.w,
+                              width: 30.w,
+                              decoration: BoxDecoration(
+                                  boxShadow: const <BoxShadow>[
+                                    BoxShadow(
+                                        color: AppColor.white3,
+                                        blurRadius: 50.0,
+                                        offset: Offset(0.0, 0.75))
+                                  ],
+                                  color: AppColor.floatBg1,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(50))),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_circle_outline,
+                                    color: AppColor.textColor3,
+                                  ),
+                                  SizedBox(
+                                    width: 1.w,
+                                  ),
+                                  Text(
+                                    "Add Issue",
+                                    style: Utils.regularTextStyle(),
+                                  )
+                                ],
+                              )),
+                        ),
+                      )
+                    : Container(),
       ),
     );
   }
@@ -364,20 +432,24 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           style: Utils.regularTextStyle(
               color: AppColor.textColor3, fontSize: AppDimens.medium_font),
         ),
-        InkWell(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) {
-              return AddTaskScreen(
-                projectId: projectId!,
-              );
-            })).then((value) {
-              setState(() {
-                taskDetailsList.add(value);
+        Padding(
+          padding: EdgeInsets.only(bottom: 22.w),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) {
+                return AddTaskScreen(
+                  projectId: projectId!,
+                );
+              })).then((value) {
+                if (value != null) {
+                  for (int i = 0; i < value.data.length; i++) {
+                    setState(() {
+                      taskDetailsList.add(value.data[i]);
+                    });
+                  }
+                }
               });
-            });
-          },
-          child: Padding(
-            padding: EdgeInsets.only(bottom: 22.w),
+            },
             child: Container(
                 height: 15.w,
                 width: 70.w,
@@ -510,11 +582,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                     SizedBox(
                                       width: 2.w,
                                     ),
-                                    SizedBox(
-                                        height: 6.w,
-                                        width: 10.w,
-                                        child:
-                                            Image.asset(ImageAsset.icons_more)),
                                   ],
                                 ),
                               ],
@@ -552,30 +619,20 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    SizedBox(
-                                      height: 15.w,
-                                      width: 15.w,
-                                      child: CircularPercentIndicator(
-                                        radius: 25.0,
-                                        lineWidth: 5.0,
-                                        percent: 0.1,
-                                        center: Text(
-                                          "10%",
-                                          style: Utils.regularTextStyle(
-                                              color: AppColor.progressPercent),
-                                        ),
-                                        progressColor: Colors.green,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Progress",
+                                SizedBox(
+                                  height: 15.w,
+                                  width: 15.w,
+                                  child: CircularPercentIndicator(
+                                    radius: 25.0,
+                                    lineWidth: 5.0,
+                                    percent: 0.1,
+                                    center: Text(
+                                      "10%",
                                       style: Utils.regularTextStyle(
-                                          color: AppColor.textColor1,
-                                          fontSize: AppDimens.medium_font),
+                                          color: AppColor.progressPercent),
                                     ),
-                                  ],
+                                    progressColor: Colors.green,
+                                  ),
                                 ),
                                 Text(
                                   "$differentDate days left",
@@ -584,25 +641,35 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                       fontSize: AppDimens.medium_font),
                                 ),
                                 Text(
-                                  "0 Issues",
+                                  "${taskDetailsList[index].issues_count ?? "0"} Issues",
                                   style: Utils.regularTextStyle(
-                                      color: AppColor.textColor1,
+                                      color: AppColor.red,
                                       fontSize: AppDimens.medium_font),
                                 ),
-                                Container(),
-                              ],
-                            ),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Padding(
-                                padding: EdgeInsets.only(right: 4.w),
-                                child: Text(
-                                  "click for review",
-                                  style: Utils.regularTextStyle(
-                                      color: AppColor.textColor6,
-                                      fontSize: AppDimens.default_font),
+                                Container(
+                                  margin: EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      color: AppColor.btnUpdateBg,
+                                      borderRadius: BorderRadius.circular(5)),
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (_) {
+                                        return TaskReviewScreen();
+                                      }));
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.all(10.0),
+                                      child: Text(
+                                        "Review",
+                                        style: Utils.regularTextStyle(
+                                            color: AppColor.textColor5,
+                                            fontSize: AppDimens.medium_font),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                           ],
                         ),

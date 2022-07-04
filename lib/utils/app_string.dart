@@ -1,4 +1,5 @@
 class AppString {
+  static String basePath = '';
   static String appName = "ConstrucT";
   static String appName1 = "ConstructIN";
   static String signIn = "Sign In";
@@ -11,11 +12,9 @@ class AppString {
   static String readyToExperience =
       "Ready to experience the\ncomplete site management?";
   static String strUnlock = "Unlock";
-
   static String strOTPsenton = "Verifying OTP sent on";
   static String youdon_have_any_active =
       "You don’t have any active projects at the moment. Create a new project to continue.";
-
   static String strProjectName = "Project Name";
   static String strEnterProjectName = "Enter Project Name";
   static String strErrorProjectName = "Please Enter Project Name";
@@ -27,6 +26,7 @@ class AppString {
   static String strEnterTaskName = "Enter Task Name";
   static String strEnterQuantity = "Enter Quantity";
   static String strEnterIssueDescription = "Enter issue description";
+  static String strAddTaskName = "Add Task Name";
   static String strSelectIssueCategory = "Select issue category";
   static String strErrorLocation = "Please Enter Location";
   static String strStartDate = "Start Date";
@@ -41,7 +41,9 @@ class AppString {
   static String strCreateProject = "Create Project";
   static String strEnterTotalWork = "Enter total work";
   static String strUnit = "Unit";
-  static String strAddTasks = "Add tasks to start their daily\n progress reporting";
+  static String strAddTasks =
+      "Add tasks to start their daily\n progress reporting";
   static String strAddAnotherTask = "add another task to this category";
-  static String strAddTeamMember = "Add team members and assign them their role on the Project";
+  static String strAddTeamMember =
+      "Add team members and assign them their role on the Project";
 }
