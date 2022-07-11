@@ -92,6 +92,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: AppColor.white,
         body: BlocListener<LoginBloc, LoginState>(
           listener: (context, state) {
             if (state is LoginLoading) {
@@ -314,9 +315,10 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           ),
         ),
         isLoading
-            ? SizedBox(
+            ? Container(
                 height: 100.h,
                 width: 100.w,
+                color: AppColor.gray4,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: AppColor.textColor,
@@ -505,9 +507,10 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
           ),
         ),
         isLoading
-            ? SizedBox(
+            ? Container(
                 height: 100.h,
                 width: 100.w,
+                color: AppColor.gray4,
                 child: Center(
                   child: CircularProgressIndicator(
                     color: AppColor.textColor,
@@ -553,7 +556,7 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
       },
       codeAutoRetrievalTimeout: (String verificationId) {
         print("codeAutoRetrievalTimeout : ${verificationId.toString()}");
-        Toasts.showToast("code Auto Retrieval Timeout");
+        // Toasts.showToast("code Auto Retrieval Timeout");
       },
     );
   }

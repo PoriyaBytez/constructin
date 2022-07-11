@@ -52,7 +52,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   FocusNode totalNode = FocusNode();
   FocusNode unitNode = FocusNode();
   DateTime selectedDate = DateTime.now();
-  UnitModel? unitModel;
+
   String? unitListValue;
   List<String> unitList = [];
   int selectUnit = 0;
@@ -63,10 +63,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   bool selectEndDate = false;
   bool selectTotal = false;
   bool isUnit = false;
+  List<UnitData> unitModel = [];
+  bool readOnly = false;
 
   @override
   void initState() {
     ApiServices.getUnitList().then((value) {
+      unitModel = value.data!;
       for (int i = 0; i < value.data!.length; i++) {
         setState(() {
           unitList.add(value.data![i].title ?? "");
@@ -114,7 +117,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     totalController.text =
         widget.totalWork == "null" ? '' : widget.totalWork.toString();
     if (widget.unitValue != 0) {
-      selectUnit = widget.unitValue - 1;
+      selectUnit = widget.unitValue;
       unitListValue = unitList[widget.unitValue - 1];
     }
   }
@@ -177,7 +180,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         body: Column(
           children: [
             appBar("Task Details", () {
-              Navigator.pop(context);
+              Navigator.pop(context, assignTeamMember.length);
             }),
             Expanded(
               child: ListView(
@@ -289,7 +292,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                 title: AppString.strEnterTotalWork,
                                 controller: totalController,
                                 focusNode: totalNode,
-                                readOnly: false,
+                                readOnly: readOnly,
                                 hint: AppString.strEnterTotalWork,
                                 textInputAction: TextInputAction.next,
                                 textInputType: TextInputType.number,
@@ -335,9 +338,17 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         fontSize: AppDimens.medium_font),
                                     onChanged: (String? newValue) {
                                       setState(() {
+                                        readOnly = false;
                                         unitListValue = newValue!;
                                         selectUnit =
                                             1 + unitList.indexOf(newValue);
+                                        if (unitModel[(unitList
+                                                    .indexOf(newValue))]
+                                                .measurementType ==
+                                            1) {
+                                          readOnly = true;
+                                          totalController.text = "100";
+                                        }
                                       });
                                     },
                                     items: unitList
@@ -647,7 +658,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   padding: EdgeInsets.only(left: 5.w, bottom: 2.w, top: 2.w),
                   child: InkWell(
                     onTap: () {
-                      addMember(state);
+                      // addMember(state);
+                      sendMobile(state);
                     },
                     child: Row(
                       children: [
@@ -1085,113 +1097,114 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
         isScrollControlled: true,
         context: context,
         builder: (BuildContext context) {
-          return Container(
-            color: AppColor.white,
-            height: 40.h,
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(5.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return SingleChildScrollView(
+            child: Container(
+              color: AppColor.white,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(5.w),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Sead Invite",
+                          style: Utils.mediumTextStyle(
+                              fontSize: AppDimens.medium_font),
+                        ),
+                        InkWell(
+                          onTap: () {
+                            Navigator.pop(context);
+                          },
+                          child: Icon(
+                            Icons.clear,
+                            size: 25,
+                            color: AppColor.gray,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(),
+                  Row(
                     children: [
-                      Text(
-                        "Sead Invite",
-                        style: Utils.mediumTextStyle(
-                            fontSize: AppDimens.medium_font),
+                      Padding(
+                        padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
+                        child: Container(
+                          height: 14.5.w,
+                          decoration: BoxDecoration(
+                            color: AppColor.textFormFieldBg,
+                            border: Border.all(
+                                color: AppColor.textFormFieldBg, width: 1),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                          child: CountryCodePicker(
+                            textStyle: Utils.regularTextStyle(
+                                fontSize: AppDimens.large_font),
+                            onChanged: (value) {
+                              print("contry Code ${value.dialCode}");
+                              setState(() {
+                                code = value.dialCode;
+                                code1 = value.dialCode?.replaceFirst("+", "");
+                                print("code $code");
+                              });
+                            },
+                            // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
+                            initialSelection: 'In',
+                            favorite: [code ?? '+91', 'In'],
+                            // optional. Shows only country name and flag
+                            showCountryOnly: true,
+                            // optional. Shows only country name and flag when popup is closed.
+                            showOnlyCountryWhenClosed: false,
+                            // optional. aligns the flag and the Text left
+                            alignLeft: false,
+                          ),
+                        ),
                       ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Icon(
-                          Icons.clear,
-                          size: 25,
-                          color: AppColor.gray,
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
+                          child: CommandTextFormField(
+                              controller: numberController,
+                              hint: "Enter your mobile number",
+                              textInputAction: TextInputAction.next,
+                              textInputType: TextInputType.number,
+                              onChange: (value) {}),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Divider(),
-                Row(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(left: 3.w),
-                      child: Container(
-                        height: 14.5.w,
-                        decoration: BoxDecoration(
-                          color: AppColor.textFormFieldBg,
-                          border: Border.all(
-                              color: AppColor.textFormFieldBg, width: 1),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                        ),
-                        child: CountryCodePicker(
-                          textStyle: Utils.regularTextStyle(
-                              fontSize: AppDimens.large_font),
-                          onChanged: (value) {
-                            print("contry Code ${value.dialCode}");
-                            setState(() {
-                              code = value.dialCode;
-                              code1 = value.dialCode?.replaceFirst("+", "");
-                              print("code $code");
+                  SizedBox(
+                    height: 3.h,
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(5.w),
+                    child: commandButton(
+                        name: "Submit",
+                        bg: AppColor.mainColor,
+                        onPress: () {
+                          if (numberController.text.isEmpty) {
+                            Toasts.showToast("please enter mobile number");
+                          } else {
+                            ApiServices.postAddMember("", code1!,
+                                    numberController.text, widget.projectID)
+                                .then((value) {
+                              state(() {
+                                code = "+91";
+                                numberController.clear();
+                                print("value re----");
+                                teamList.add(CustomTeamList(teamDataList: value));
+                                Navigator.pop(context);
+                              });
                             });
-                          },
-                          // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
-                          initialSelection: 'In',
-                          favorite: [code ?? '+91', 'In'],
-                          // optional. Shows only country name and flag
-                          showCountryOnly: true,
-                          // optional. Shows only country name and flag when popup is closed.
-                          showOnlyCountryWhenClosed: false,
-                          // optional. aligns the flag and the Text left
-                          alignLeft: false,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(3.w),
-                        child: CommandTextFormField(
-                            controller: numberController,
-                            hint: "Enter your mobile number",
-                            textInputAction: TextInputAction.next,
-                            textInputType: TextInputType.number,
-                            onChange: (value) {}),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 3.h,
-                ),
-                Padding(
-                  padding: EdgeInsets.all(5.w),
-                  child: commandButton(
-                      name: "Submit",
-                      bg: AppColor.mainColor,
-                      onPress: () {
-                        if (numberController.text.isEmpty) {
-                          Toasts.showToast("please enter mobile number");
-                        } else {
-                          ApiServices.postAddMember("", code1!,
-                                  numberController.text, widget.projectID)
-                              .then((value) {
-                            state(() {
-                              code = "+91";
-                              numberController.clear();
-                              print("value re----");
-                              teamList.add(CustomTeamList(teamDataList: value));
-                              Navigator.pop(context);
-                            });
-                          });
-                        }
-                      },
-                      strColor: AppColor.white),
-                ),
-              ],
+                          }
+                        },
+                        strColor: AppColor.white),
+                  ),
+                ],
+              ),
             ),
           );
         });

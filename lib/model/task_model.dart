@@ -49,6 +49,7 @@ class TaskDetailsList {
       this.taskUnit,
       this.taskMembers,
       this.workCompleted,
+      this.taskProgress,
       this.unitTitle});
 
   int? id;
@@ -69,6 +70,7 @@ class TaskDetailsList {
   int? issues_count;
   int? taskMembers;
   int? workCompleted;
+  String? taskProgress;
   dynamic unitTitle;
 
   factory TaskDetailsList.fromJson(Map<String, dynamic> json) =>
@@ -95,6 +97,7 @@ class TaskDetailsList {
             json["task_unit"] == null ? null : Task.fromJson(json["task_unit"]),
         taskMembers: json["taskMembers"],
         workCompleted: json["workCompleted"],
+        taskProgress: json["taskProgress"],
         unitTitle: json["unitTitle"],
       );
 
@@ -119,6 +122,7 @@ class TaskDetailsList {
         "task_unit": taskUnit?.toJson(),
         "taskMembers": taskMembers,
         "workCompleted": workCompleted,
+        "taskProgress": taskProgress,
         "unitTitle": unitTitle
       };
 }

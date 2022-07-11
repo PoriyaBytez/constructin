@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:constructin/utils/shared_preferences/preferences_key.dart';
 import 'package:constructin/utils/shared_preferences/preferences_manager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:sizer/sizer.dart';
 
 import 'app_color.dart';
@@ -181,5 +184,29 @@ class Utils {
     from = DateTime(from.year, from.month, from.day);
     to = DateTime(to.year, to.month, to.day);
     return to.difference(from).inDays;
+  }
+
+  static Future<File?> testCompressAndGetFile(
+      File file, String targetPath, int quality, var format) async {
+    print("testCompressAndGetFile");
+    final result = await FlutterImageCompress.compressAndGetFile(
+        file.absolute.path, targetPath,
+        quality: quality,
+        minWidth: 600,
+        minHeight: 600,
+        format: format == "png" ? CompressFormat.png : CompressFormat.jpeg);
+    return result;
+  }
+
+  static int getQuality(double mb) {
+    var quality = 95;
+    if (mb <= 2) {
+      quality = 90;
+    } else if (mb > 5 || mb <= 10) {
+      quality = 80;
+    } else if (mb > 10 || mb <= 15) {
+      quality = 50;
+    }
+    return quality;
   }
 }

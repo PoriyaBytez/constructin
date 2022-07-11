@@ -32,6 +32,7 @@ class _SignInScreenState extends State<SignInScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
+        backgroundColor: AppColor.white,
         body: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

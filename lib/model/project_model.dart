@@ -45,6 +45,7 @@ class ProjectData {
     this.issues_count,
     this.members_count,
     this.projectDetail,
+    this.projectProgress,
   });
 
   int? id;
@@ -60,6 +61,7 @@ class ProjectData {
   int? issues_count;
   int? members_count;
   ProjectDetail? projectDetail;
+  String? projectProgress;
 
   factory ProjectData.fromJson(Map<String, dynamic> json) => ProjectData(
         id: json["id"],
@@ -74,6 +76,7 @@ class ProjectData {
         updatedAt: json["updated_at"],
         issues_count: json["issues_count"],
         members_count: json["members_count"],
+        projectProgress: json["projectProgress"],
         projectDetail: ProjectDetail.fromJson(json["project_detail"]),
       );
 
@@ -90,6 +93,7 @@ class ProjectData {
         "updated_at": updatedAt,
         "issues_count": issues_count,
         "members_count": members_count,
+        "projectProgress": projectProgress,
         "project_detail": projectDetail?.toJson(),
       };
 }

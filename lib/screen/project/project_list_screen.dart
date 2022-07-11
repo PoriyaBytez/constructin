@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:constructin/bloc/project_list/project_list_bloc.dart';
 import 'package:constructin/helper/route_helper.dart';
 import 'package:constructin/model/project_model.dart';
+import 'package:constructin/screen/dashboard/dashboard_screen.dart';
 import 'package:constructin/screen/profile_screen.dart';
 import 'package:constructin/utils/toasts.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +38,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
 
   List<ProjectData>? data;
   late UserModel userModel;
-  String imageUrl = '';
+  String imageUrl = "";
 
   @override
   void initState() {
@@ -94,7 +95,7 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                         })).then((value) {
                           if (value != "") {
                             setState(() {
-                              imageUrl = AppString.basePath + value;
+                              imageUrl = value;
                             });
                           }
                         });
@@ -159,9 +160,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
             Expanded(
               child: isLoading
-                  ? Center(
-                      child: CircularProgressIndicator(
-                        color: AppColor.mainColor,
+                  ? Container(
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppColor.mainColor,
+                        ),
                       ),
                     )
                   : ListView.builder(
@@ -171,8 +174,16 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       itemBuilder: (context, index) {
                         return InkWell(
                           onTap: () {
-                            Get.toNamed(RouteHelper.dashBoard,
-                                arguments: data![index]);
+                            Navigator.push(context,
+                                MaterialPageRoute(builder: (_) {
+                              return DashBoardScreen(
+                                projectData: data![index],
+                              );
+                            })).then((value) {
+                              setState(() {
+                                data?[index].issues_count = value;
+                              });
+                            });
                           },
                           child: SizedBox(
                             height: 70.w,
@@ -338,7 +349,8 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                       .spaceBetween,
                                               children: [
                                                 commandTextWithIcon(
-                                                    text: "-% progress",
+                                                    text:
+                                                        "${data?[index].projectProgress ?? "0.0"}% progress",
                                                     icon: ImageAsset
                                                         .iconProgress),
                                                 commandTextWithIcon(

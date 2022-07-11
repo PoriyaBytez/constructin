@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:constructin/model/comment_model.dart';
 import 'package:constructin/screen/task/full_screen_image.dart';
 import 'package:constructin/utils/app_color.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:sizer/sizer.dart';
 
 import '../model/contact_model.dart';
@@ -53,15 +55,16 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   List<CustomTeamList> allTeamMember = [];
   List<CustomTeamList> teamList = [];
 
-  List<TeamData> members = [];
   List<TeamData> membersAssign = [];
   TextEditingController commentController = TextEditingController();
 
+  FocusNode commentNode = FocusNode();
   List<CommentData> commentList = [];
   List<CommentData> attachment = [];
 
   @override
   void initState() {
+    print("size : ${widget.data.attachment!.length}");
     var outputFormat = DateFormat("hh:mm a, dd MMM, yyyy");
     outputDate = outputFormat.format(widget.data.createdAt!);
     attachment = widget.data.attachment!;
@@ -71,30 +74,32 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   }
 
   getTeamList() async {
-    print("member : ${widget.data.members?.length}");
-    print("issue id : ${widget.data.id}");
-    members = widget.data.members!;
-    allTeamMember = widget.data.members!
-        .map((e) => CustomTeamList(teamDataList: e))
-        .toList();
-
-    for (int i = 0; i < members.length; i++) {
+    await ApiServices.getTeamMemberList(widget.data.projectId!).then((value) {
       setState(() {
-        print(" issue Right  ${members[i].issuesRight}");
-        final issuesRight = members[i].issuesRight;
-        if (issuesRight != null) {
-          List mList = (issuesRight.split(','));
-          if (mList.isNotEmpty) {
-            for (int j = 0; j < mList.length; j++) {
-              if (widget.data.id.toString().trim() ==
-                  mList[j].toString().trim()) {
-                membersAssign.add(members[i]);
+        allTeamMember = value.data!
+            .map((contact) => CustomTeamList(teamDataList: contact))
+            .toList();
+        for (int i = 0; i < allTeamMember.length; i++) {
+          setState(() {
+            print(" issue Right  ${allTeamMember[i].teamDataList.issuesRight}");
+            final issuesRight = allTeamMember[i].teamDataList.issuesRight;
+            if (issuesRight != null) {
+              List mList = (issuesRight.split(','));
+              if (mList.isNotEmpty) {
+                for (int j = 0; j < mList.length; j++) {
+                  print("member id   ${mList[j].toString().trim()}");
+                  if (widget.data.id.toString().trim() ==
+                      mList[j].toString().trim()) {
+                    print("assign");
+                    membersAssign.add(allTeamMember[i].teamDataList);
+                  }
+                }
               }
             }
-          }
+          });
         }
       });
-    }
+    });
   }
 
   getCommentList() {
@@ -118,7 +123,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         body: Column(
           children: [
             appBar("Material Shortage", () {
-              Navigator.pop(context);
+              Navigator.pop(context, commentList.length);
             }),
             Expanded(
               child: Padding(
@@ -192,7 +197,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                           child: widget.data.teamDetails?.image == null
                               ? Icon(
                                   Icons.person,
-                                  size: 8.w,
+                                  size: 5.w,
                                 )
                               : CircleAvatar(
                                   radius: 200.0,
@@ -296,133 +301,159 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                     ),
                     selectIndex == 1
                         ? Expanded(
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: commentList.length,
-                              itemBuilder: (context, index) {
-                                var path;
-                                if (commentList[index].image != null) {
-                                  path =
-                                      commentList[index].image?.split(".").last;
-                                }
-
-                                return Card(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(
-                                        top: 3.w,
-                                        bottom: 3.w,
-                                        left: 3.w,
-                                        right: 3.w),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.end,
-                                      children: [
-                                        Text(
-                                          "just now",
-                                          style: Utils.regularTextStyle(
-                                              color: AppColor.textColor8,
-                                              fontSize: AppDimens.default_font),
-                                        ),
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Container(
-                                              height: 8.w,
-                                              width: 8.w,
-                                              decoration: BoxDecoration(
-                                                  shape: BoxShape.circle,
-                                                  border: Border.all(
-                                                      color: AppColor.black,
-                                                      width: 1)),
-                                              child: commentList[index].image ==
-                                                      ""
-                                                  ? Icon(
-                                                      Icons.person,
-                                                      size: 8.w,
-                                                    )
-                                                  : CircleAvatar(
-                                                      radius: 200.0,
-                                                      backgroundImage:
-                                                          NetworkImage(AppString
-                                                                  .basePath +
-                                                              commentList[index]
-                                                                  .members
-                                                                  ?.image),
-                                                    ),
-                                            ),
-                                            SizedBox(
-                                              width: 3.w,
-                                            ),
-                                            commentList[index].image == null
-                                                ? Text(
-                                                    commentList[index]
-                                                            .comment ??
-                                                        "",
+                            child: commentList.isEmpty
+                                ? Container(
+                                    child:
+                                        Center(child: Text("Not Data Found")),
+                                  )
+                                : commentList.length == 0
+                                    ? Center(
+                                        child: CircularProgressIndicator(),
+                                      )
+                                    : ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: commentList.length,
+                                        itemBuilder: (context, index) {
+                                          var path;
+                                          if (commentList[index].image !=
+                                              null) {
+                                            path = commentList[index]
+                                                .image
+                                                ?.split(".")
+                                                .last;
+                                          }
+                                          return Card(
+                                            child: Padding(
+                                              padding: EdgeInsets.only(
+                                                  top: 3.w,
+                                                  bottom: 3.w,
+                                                  left: 3.w,
+                                                  right: 3.w),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    "just now",
                                                     style:
                                                         Utils.regularTextStyle(
-                                                            color:
-                                                                AppColor.black,
+                                                            color: AppColor
+                                                                .textColor8,
                                                             fontSize: AppDimens
                                                                 .default_font),
-                                                  )
-                                                : InkWell(
-                                                    onTap: () {
-                                                      Navigator.push(context,
-                                                          MaterialPageRoute(
-                                                              builder: (_) {
-                                                        return FullScreen(
-                                                            url: commentList[
-                                                                    index]
-                                                                .image!,
-                                                            extention: path!);
-                                                      }));
-                                                    },
-                                                    child: Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              8.0),
-                                                      child: path != "pdf"
-                                                          ? Container(
-                                                              height: 20.w,
-                                                              width: 20.w,
-                                                              decoration: BoxDecoration(
-                                                                  borderRadius:
-                                                                      BorderRadius.all(
-                                                                          Radius.circular(
-                                                                              5)),
-                                                                  image: DecorationImage(
-                                                                      image: NetworkImage((AppString
-                                                                              .basePath) +
-                                                                          (commentList[index].image ??
-                                                                              "")),
-                                                                      fit: BoxFit
-                                                                          .cover)),
-                                                            )
-                                                          : Icon(
-                                                              Icons
-                                                                  .picture_as_pdf_outlined,
-                                                              size: 10.w,
-                                                            ),
-                                                    ),
                                                   ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
+                                                  Row(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Container(
+                                                        height: 8.w,
+                                                        width: 8.w,
+                                                        decoration: BoxDecoration(
+                                                            shape:
+                                                                BoxShape.circle,
+                                                            border: Border.all(
+                                                                color: AppColor
+                                                                    .black,
+                                                                width: 1)),
+                                                        child: commentList[
+                                                                        index]
+                                                                    .members
+                                                                    .image ==
+                                                                null
+                                                            ? Icon(
+                                                                Icons.person,
+                                                                size: 5.w,
+                                                              )
+                                                            : CircleAvatar(
+                                                                radius: 200.0,
+                                                                backgroundImage: NetworkImage(AppString
+                                                                        .basePath +
+                                                                    commentList[
+                                                                            index]
+                                                                        .members
+                                                                        ?.image),
+                                                              ),
+                                                      ),
+                                                      SizedBox(
+                                                        width: 3.w,
+                                                      ),
+                                                      commentList[index]
+                                                                  .image ==
+                                                              null
+                                                          ? Text(
+                                                              commentList[index]
+                                                                      .comment ??
+                                                                  "",
+                                                              style: Utils.regularTextStyle(
+                                                                  color: AppColor
+                                                                      .black,
+                                                                  fontSize:
+                                                                      AppDimens
+                                                                          .default_font),
+                                                            )
+                                                          : InkWell(
+                                                              onTap: () {
+                                                                Navigator.push(
+                                                                    context,
+                                                                    MaterialPageRoute(
+                                                                        builder:
+                                                                            (_) {
+                                                                  return FullScreen(
+                                                                      url: commentList[
+                                                                              index]
+                                                                          .image!,
+                                                                      extention:
+                                                                          path!);
+                                                                }));
+                                                              },
+                                                              child: Padding(
+                                                                padding:
+                                                                    const EdgeInsets
+                                                                            .all(
+                                                                        8.0),
+                                                                child: path !=
+                                                                        "pdf"
+                                                                    ? Container(
+                                                                        height:
+                                                                            20.w,
+                                                                        width:
+                                                                            20.w,
+                                                                        decoration: BoxDecoration(
+                                                                            borderRadius:
+                                                                                BorderRadius.all(Radius.circular(5)),
+                                                                            image: DecorationImage(image: NetworkImage((AppString.basePath) + (commentList[index].image ?? "")), fit: BoxFit.cover)),
+                                                                      )
+                                                                    : Icon(
+                                                                        Icons
+                                                                            .picture_as_pdf_outlined,
+                                                                        size: 10
+                                                                            .w,
+                                                                      ),
+                                                              ),
+                                                            ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
                           )
                         : selectIndex == 2
                             ? Expanded(
-                                child: GridView.builder(
+                                child: widget.data.attachment!.isEmpty ? Container(
+                                  child: Center(
+                                      child: Text("Not Data Found")),
+                                ): GridView.builder(
                                 gridDelegate:
                                     const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 3,
                                 ),
                                 itemCount: widget.data.attachment!.length,
+                                addAutomaticKeepAlives: false,
                                 itemBuilder: (context, index) {
                                   final path = widget
                                       .data.attachment![index].image
@@ -436,30 +467,41 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                           MaterialPageRoute(builder: (_) {
                                         return FullScreen(
                                             url: widget
-                                                .data.attachment![index].image!,
+                                                .data.attachment![index].image,
                                             extention: path!);
                                       }));
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: path != "pdf"
-                                          ? Container(
-                                              height: 10.w,
-                                              width: 10.w,
-                                              decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.all(
-                                                          Radius.circular(5)),
-                                                  image: DecorationImage(
-                                                      image: NetworkImage(
-                                                          (AppString.basePath) +
-                                                              (widget
-                                                                      .data
-                                                                      .attachment![
-                                                                          index]
-                                                                      .image ??
-                                                                  "")),
-                                                      fit: BoxFit.cover)),
+                                          ? ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              child: CachedNetworkImage(
+                                                height: 10.w,
+                                                width: 10.w,
+                                                fit: BoxFit.cover,
+                                                imageUrl: (AppString.basePath) +
+                                                    (attachment[index].image ??
+                                                        ""),
+                                                progressIndicatorBuilder:
+                                                    (context, url,
+                                                            downloadProgress) =>
+                                                        Center(
+                                                  child: Container(
+                                                    height: 10.w,
+                                                    width: 10.w,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                            value:
+                                                                downloadProgress
+                                                                    .progress),
+                                                  ),
+                                                ),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        Icon(Icons.error),
+                                              ),
                                             )
                                           : Icon(
                                               Icons.picture_as_pdf_outlined,
@@ -477,11 +519,14 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                   SizedBox(
                                     height: 5.w,
                                   ),
-                                  Text(
-                                      "Task Name- ${widget.data.tag == null ? widget.data.task.title : ''}"),
-                                  SizedBox(
-                                    height: 5.w,
-                                  ),
+                                  widget.data.tag == null
+                                      ? Container()
+                                      : Text("Task Name- ${widget.data.tag}"),
+                                  widget.data.tag == null
+                                      ? Container()
+                                      : SizedBox(
+                                          height: 5.w,
+                                        ),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -505,47 +550,72 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                     height: 5.w,
                                   ),
                                   Expanded(
-                                    child: ListView.builder(
-                                      itemCount: membersAssign.length,
-                                      shrinkWrap: true,
-                                      itemBuilder: (context, index) {
-                                        return Card(
-                                          child: Padding(
-                                            padding: EdgeInsets.all(3.w),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Text(
-                                                  membersAssign[index]
-                                                          .teamDetails
-                                                          ?.name ??
-                                                      "",
-                                                  style:
-                                                      Utils.regularTextStyle(),
+                                    child: membersAssign.isEmpty
+                                        ? Container(
+                                            child: Center(
+                                                child: Text("Not Data Found")),
+                                          )
+                                        : ListView.builder(
+                                            itemCount: membersAssign.length,
+                                            shrinkWrap: true,
+                                            itemBuilder: (context, index) {
+                                              return Card(
+                                                child: Padding(
+                                                  padding: EdgeInsets.all(3.w),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            membersAssign[index]
+                                                                    .teamDetails
+                                                                    ?.name ??
+                                                                "-",
+                                                            style: Utils
+                                                                .regularTextStyle(),
+                                                          ),
+                                                          Text(
+                                                            membersAssign[index]
+                                                                    .teamDetails
+                                                                    ?.mobile ??
+                                                                "",
+                                                            style: Utils
+                                                                .regularTextStyle(),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      InkWell(
+                                                          onTap: () {
+                                                            ApiServices.postIssueRight(
+                                                                widget.data.id!,
+                                                                widget.data
+                                                                    .projectId!,
+                                                                membersAssign[
+                                                                        index]
+                                                                    .registerUserId!);
+                                                            setState(() {
+                                                              membersAssign
+                                                                  .removeAt(
+                                                                      index);
+                                                            });
+                                                          },
+                                                          child: Text(
+                                                            "remove",
+                                                            style: Utils
+                                                                .regularTextStyle(),
+                                                          ))
+                                                    ],
+                                                  ),
                                                 ),
-                                                InkWell(
-                                                    onTap: () {
-                                                      ApiServices
-                                                          .postIssueRight(
-                                                              widget.data.id!,
-                                                              widget.data
-                                                                  .projectId!,
-                                                              widget.data
-                                                                  .taskId!);
-                                                    },
-                                                    child: Text(
-                                                      "remove",
-                                                      style: Utils
-                                                          .regularTextStyle(),
-                                                    ))
-                                              ],
-                                            ),
+                                              );
+                                            },
                                           ),
-                                        );
-                                      },
-                                    ),
                                   ),
                                 ],
                               )),
@@ -570,6 +640,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                         width: 67.w,
                                         child: TextField(
                                           controller: commentController,
+                                          focusNode: commentNode,
+                                          textInputAction: TextInputAction.done,
                                           decoration: InputDecoration(
                                             hintText: "Add comment",
                                             hintStyle: Utils.regularTextStyle(
@@ -602,18 +674,25 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                       ),
                                       InkWell(
                                           onTap: () {
-                                            ApiServices.poseComment(
-                                                    widget.data.projectId!,
-                                                    widget.data.id!,
-                                                    widget.data.taskId!,
-                                                    null,
-                                                    commentController.text)
-                                                .then((value) {
-                                              setState(() {
-                                                commentController.clear();
-                                                commentList.add(value);
+                                            if (commentController
+                                                .text.isEmpty) {
+                                              Toasts.showToast(
+                                                  "Please enter comment.");
+                                            } else {
+                                              commentNode.unfocus();
+                                              ApiServices.poseComment(
+                                                      widget.data.projectId!,
+                                                      widget.data.id!,
+                                                      widget.data.taskId!,
+                                                      null,
+                                                      commentController.text)
+                                                  .then((value) {
+                                                setState(() {
+                                                  commentController.clear();
+                                                  commentList.add(value);
+                                                });
                                               });
-                                            });
+                                            }
                                           },
                                           child: Container(
                                               height: 12.w,
@@ -648,7 +727,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
 
   assignTask() {
     if (membersAssign.isNotEmpty) {
-      members.clear();
+      teamList.clear();
       for (int j = 0; j < allTeamMember.length; j++) {
         bool isCheck = false;
         CustomTeamList? data;
@@ -695,20 +774,34 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   }
 
   getFilePicker() async {
+    final dir = await path_provider.getTemporaryDirectory();
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: false,
       type: FileType.custom,
+      allowCompression: true,
       allowedExtensions: ['jpg', 'pdf', 'png'],
     );
     for (int i = 0; i < result!.files.length; i++) {
       String fileName = File(result.files[i].path!).path.split('/').last;
-      print(" name $fileName");
+      File? file;
+      var mb = ((result.files[i].size) / 1024) / 1024;
+      int? quality = Utils.getQuality(mb);
+      final targetPath = dir.absolute.path + fileName;
+      final format = result.files[i].extension;
+      if (format == "pdf") {
+        final imgFile = File(result.files[i].path!);
+        file = imgFile;
+      } else {
+        final imgFile = await Utils.testCompressAndGetFile(
+            File(result.files[i].path!), targetPath, quality, format);
+        file = imgFile;
+      }
+
       ApiServices.poseComment(
               widget.data.projectId!,
               widget.data.id!,
               widget.data.taskId!,
-              await MultipartFile.fromFile(File(result.files[i].path!).path,
-                  filename: fileName),
+              await MultipartFile.fromFile(file!.path, filename: fileName),
               commentController.text)
           .then((value) {
         setState(() {
@@ -717,6 +810,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
           Navigator.pop(context);
         });
       });
+      ;
     }
   }
 
@@ -739,7 +833,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Assign Task",
+                        "Assign Issue",
                         style: Utils.mediumTextStyle(
                             fontSize: AppDimens.medium_font),
                       ),
@@ -765,7 +859,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                   padding: EdgeInsets.only(left: 5.w, bottom: 2.w, top: 2.w),
                   child: InkWell(
                     onTap: () {
-                      addMember(state);
+                      // addMember(state);
+                      sendMobile(state);
                     },
                     child: Row(
                       children: [
@@ -932,7 +1027,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                           Toasts.showToast("please select member");
                         } else {
                           setState(() {
-                            ApiServices.postTaskRight(
+                            ApiServices.postIssueRight(
                                 widget.data.id!,
                                 widget.data.projectId!,
                                 teamList[currentIndexTeam ?? 0]
@@ -1204,6 +1299,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     });
   }
 
+
   sendMobile(StateSetter state) {
     showModalBottomSheet(
         shape: RoundedRectangleBorder(
@@ -1212,114 +1308,118 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         isScrollControlled: true,
         context: context,
         builder: (BuildContext context) {
-          return Container(
-            color: AppColor.white,
-            height: 40.h,
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(5.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Sead Invite",
-                        style: Utils.mediumTextStyle(
-                            fontSize: AppDimens.medium_font),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                        },
-                        child: Icon(
-                          Icons.clear,
-                          size: 25,
-                          color: AppColor.gray,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(),
-                Row(
+          return SingleChildScrollView(
+            child: StatefulBuilder(builder: (context,state){
+              return Container(
+                color: AppColor.white,
+                child: Column(
                   children: [
                     Padding(
-                      padding: EdgeInsets.only(left: 3.w),
-                      child: Container(
-                        height: 14.5.w,
-                        decoration: BoxDecoration(
-                          color: AppColor.textFormFieldBg,
-                          border: Border.all(
-                              color: AppColor.textFormFieldBg, width: 1),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
+                      padding: EdgeInsets.all(5.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Sead Invite",
+                            style: Utils.mediumTextStyle(
+                                fontSize: AppDimens.medium_font),
                           ),
-                        ),
-                        child: CountryCodePicker(
-                          textStyle: Utils.regularTextStyle(
-                              fontSize: AppDimens.large_font),
-                          onChanged: (value) {
-                            print("contry Code ${value.dialCode}");
-                            setState(() {
-                              code = value.dialCode;
-                              code1 = value.dialCode?.replaceFirst("+", "");
-                              print("code $code");
-                            });
-                          },
-                          // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
-                          initialSelection: 'In',
-                          favorite: [code ?? '+91', 'In'],
-                          // optional. Shows only country name and flag
-                          showCountryOnly: true,
-                          // optional. Shows only country name and flag when popup is closed.
-                          showOnlyCountryWhenClosed: false,
-                          // optional. aligns the flag and the Text left
-                          alignLeft: false,
-                        ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context);
+                            },
+                            child: Icon(
+                              Icons.clear,
+                              size: 25,
+                              color: AppColor.gray,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.all(3.w),
-                        child: CommandTextFormField(
-                            controller: numberController,
-                            hint: "Enter your mobile number",
-                            textInputAction: TextInputAction.next,
-                            textInputType: TextInputType.number,
-                            onChange: (value) {}),
-                      ),
+                    Divider(),
+                    Row(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
+                          child: Container(
+                            height: 14.5.w,
+                            decoration: BoxDecoration(
+                              color: AppColor.textFormFieldBg,
+                              border: Border.all(
+                                  color: AppColor.textFormFieldBg, width: 1),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(10),
+                              ),
+                            ),
+                            child: CountryCodePicker(
+                              textStyle: Utils.regularTextStyle(
+                                  fontSize: AppDimens.large_font),
+                              onChanged: (value) {
+                                print("contry Code ${value.dialCode}");
+                                setState(() {
+                                  code = value.dialCode;
+                                  code1 = value.dialCode?.replaceFirst("+", "");
+                                  print("code $code");
+                                });
+                              },
+                              // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
+                              initialSelection: 'In',
+                              favorite: [code ?? '+91', 'In'],
+                              // optional. Shows only country name and flag
+                              showCountryOnly: true,
+                              // optional. Shows only country name and flag when popup is closed.
+                              showOnlyCountryWhenClosed: false,
+                              // optional. aligns the flag and the Text left
+                              alignLeft: false,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Padding(
+                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                            child: CommandTextFormField(
+                                controller: numberController,
+                                hint: "Enter your mobile number",
+                                textInputAction: TextInputAction.next,
+                                textInputType: TextInputType.number,
+                                onChange: (value) {}),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(
+                      height: 3.h,
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(5.w),
+                      child: commandButton(
+                          name: "Submit",
+                          bg: AppColor.mainColor,
+                          onPress: () {
+                            if (numberController.text.isEmpty) {
+                              Toasts.showToast("please enter mobile number");
+                            } else {
+                              ApiServices.postAddMember("", code1!,
+                                  numberController.text, widget.data.projectId)
+                                  .then((value) {
+                                state(() {
+                                  code = "+91";
+                                  numberController.clear();
+                                  teamList.add(CustomTeamList(teamDataList: value));
+                                  allTeamMember
+                                      .add(CustomTeamList(teamDataList: value));
+                                  Navigator.pop(context);
+                                });
+                              });
+                            }
+                          },
+                          strColor: AppColor.white),
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: 3.h,
-                ),
-                Padding(
-                  padding: EdgeInsets.all(5.w),
-                  child: commandButton(
-                      name: "Submit",
-                      bg: AppColor.mainColor,
-                      onPress: () {
-                        if (numberController.text.isEmpty) {
-                          Toasts.showToast("please enter mobile number");
-                        } else {
-                          ApiServices.postAddMember("", code1!,
-                                  numberController.text, widget.data.projectId)
-                              .then((value) {
-                            state(() {
-                              code = "+91";
-                              numberController.clear();
-                              print("value re----");
-                              teamList.add(CustomTeamList(teamDataList: value));
-                              Navigator.pop(context);
-                            });
-                          });
-                        }
-                      },
-                      strColor: AppColor.white),
-                ),
-              ],
-            ),
+              );
+            },),
           );
         });
   }

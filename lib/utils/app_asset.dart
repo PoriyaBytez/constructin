@@ -37,4 +37,5 @@ class ImageAsset {
   static String imageAddMember = 'assets/images/image_add_member.png';
   static String iconPdf = 'assets/images/icon_pdf.png';
   static String plusCircle = 'assets/images/plus_circle.png';
+  static String loading = 'assets/images/loading.gif';
 }

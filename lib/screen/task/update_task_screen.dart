@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:constructin/screen/task/full_screen_image.dart';
 import 'package:constructin/screen/task/task_details_screen.dart';
 import 'package:constructin/screen/task/task_issue_screen.dart';
@@ -12,10 +13,10 @@ import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:sizer/sizer.dart';
 
 import '../../bloc/task_update_bloc/task_update_bloc.dart';
@@ -30,11 +31,15 @@ import '../../widget/text_form_field.dart';
 import '../issue_details_screen.dart';
 
 class UpdateTaskScreen extends StatefulWidget {
-  const UpdateTaskScreen({Key? key}) : super(key: key);
+  TaskDetailsList? taskDetailsList;
+
+  UpdateTaskScreen({this.taskDetailsList});
 
   @override
   State<UpdateTaskScreen> createState() => _UpdateTaskScreenState();
 }
+
+enum Menu { itemOne }
 
 class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   TextEditingController quantityController = TextEditingController();
@@ -58,7 +63,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
 
   @override
   void initState() {
-    taskDetailsList = Get.arguments;
+    taskDetailsList = widget.taskDetailsList!;
     formatter = DateFormat('yyyy/MM/dd');
     currentDate = formatter.format(now);
     taskUpdateBloc = BlocProvider.of<TaskUpdateBloc>(context);
@@ -112,7 +117,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
         body: Column(
           children: [
             appBar("Task Update", () {
-              Get.back();
+              Navigator.pop(context, issueList.length);
             }),
             Expanded(
               child: BlocListener<TaskUpdateBloc, TaskUpdateState>(
@@ -184,20 +189,26 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                         );
                                       })).then((value) {
                                         if (value != null) {
-                                          print("taskUnit ${value}");
-                                          setState(() {
-                                            taskDetailsList.endDate =
-                                                value.endDate;
-                                            taskDetailsList.totalWork =
-                                                value.totalWork;
-                                            taskDetailsList.startDate =
-                                                value.startDate;
-                                            unit = value.unitTitle;
-                                            taskDetailsList.unitId =
-                                                value.unitId;
-                                            taskDetailsList.taskMembers =
-                                                value?.taskMembers;
-                                          });
+                                          if (value!.runtimeType == int) {
+                                            setState(() {
+                                              taskDetailsList.taskMembers =
+                                                  value;
+                                            });
+                                          } else {
+                                            setState(() {
+                                              taskDetailsList.endDate =
+                                                  value.endDate;
+                                              taskDetailsList.totalWork =
+                                                  value.totalWork;
+                                              taskDetailsList.startDate =
+                                                  value.startDate;
+                                              unit = value.unitTitle;
+                                              taskDetailsList.unitId =
+                                                  value.unitId;
+                                              taskDetailsList.taskMembers =
+                                                  value?.taskMembers;
+                                            });
+                                          }
                                         }
                                       });
                                     },
@@ -670,9 +681,14 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                       ],
                     ),
                     isLoading
-                        ? Center(
-                            child: CircularProgressIndicator(
-                              color: AppColor.mainColor,
+                        ? Container(
+                            height: 100.h,
+                            width: 100.w,
+                            color: AppColor.gray4,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                color: AppColor.mainColor,
+                              ),
                             ),
                           )
                         : Container(),
@@ -705,29 +721,45 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   }
 
   getFilePicker() async {
+    final dir = await path_provider.getTemporaryDirectory();
     final result = await FilePicker.platform.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['jpg', 'pdf', 'png'],
     );
-    print("file  frile  ${result?.files.length}");
+
     List<MultipartFile> list = [];
     for (int i = 0; i < result!.files.length; i++) {
+      var mb = ((result.files[i].size) / 1024) / 1024;
+      int? quality = Utils.getQuality(mb);
       String fileName = File(result.files[i].path!).path.split('/').last;
-      print(" name $fileName");
-      list.add(await MultipartFile.fromFile(File(result.files[i].path!).path,
-          filename: fileName));
+      final targetPath = dir.absolute.path + fileName;
+      final format = result.files[i].extension;
+      if (format == "pdf") {
+        final imgFile = File(result.files[i].path!);
+        list.add(
+            await MultipartFile.fromFile(imgFile.path, filename: fileName));
+      } else {
+        final imgFile = await Utils.testCompressAndGetFile(
+            File(result.files[i].path!), targetPath, quality, format);
+        list.add(
+            await MultipartFile.fromFile(imgFile!.path, filename: fileName));
+      }
     }
+    Navigator.pop(context);
+    setState(() {
+      isLoading = true;
+    });
     ApiServices.postTaskImage(list, taskDetailsList.id,
             taskDetailsList.projectId, taskDetailsList.registerUserId)
         .then((value) {
       if (value != null) {
         setState(() {
+          isLoading = false;
           print("value File :${value.data!.length}");
           for (int i = 0; i < value.data!.length; i++) {
             taskImageList.add(value.data![i]);
           }
-          Navigator.pop(context);
         });
       }
     });
@@ -772,9 +804,11 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
               Expanded(
                 child: Container(
                   height: 10.w,
+                  width: 60.w,
                   child: ListView.builder(
                       padding: EdgeInsets.only(right: 2.w, left: 2.w),
                       shrinkWrap: true,
+                      key: UniqueKey(),
                       scrollDirection: Axis.horizontal,
                       itemCount: taskImageList.length,
                       itemBuilder: (context, index) {
@@ -794,18 +828,30 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                           child: Padding(
                             padding: EdgeInsets.only(right: 2.w),
                             child: path != "pdf"
-                                ? Container(
-                                    height: 10.w,
-                                    width: 10.w,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.all(
-                                            Radius.circular(5)),
-                                        image: DecorationImage(
-                                            image: NetworkImage((AppString
-                                                    .basePath) +
-                                                (taskImageList[index].image ??
-                                                    "")),
-                                            fit: BoxFit.cover)),
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(5),
+                                    child: CachedNetworkImage(
+                                      height: 10.w,
+                                      width: 10.w,
+                                      fit: BoxFit.cover,
+                                      imageUrl: (AppString.basePath) +
+                                          (taskImageList[index].image ?? ""),
+                                      cacheManager: CacheManager(Config(
+                                        "key$index",
+                                        stalePeriod: const Duration(days: 7),
+                                      )),
+                                      placeholder: (context, url) => Center(
+                                        child: Container(
+                                          height: 5.w,
+                                          width: 5.w,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2.1,
+                                          ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, url, error) =>
+                                          Icon(Icons.error),
+                                    ),
                                   )
                                 : Icon(
                                     Icons.picture_as_pdf_outlined,
@@ -856,7 +902,9 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
             if (taskDetailsList.totalWork != null) {
               Navigator.push(context, MaterialPageRoute(builder: (_) {
                 return TaskIssueScreen(
-                  taskDetailsList: taskDetailsList,
+                  projectID: taskDetailsList.projectId,
+                  edit: 0,
+                  taskId: taskDetailsList.id,
                   tag: 0,
                 );
               })).then((value) {
@@ -894,207 +942,275 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
               var outputDate = outputFormat.format(issueList[index].createdAt!);
               return Container(
                 width: 80.w,
-                child: Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(4.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
+                  children: [
+                    Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(4.w),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      width: 34.w,
+                                      decoration: BoxDecoration(
+                                          color: AppColor.green1,
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          issueList[index]
+                                                  .issueCategory!
+                                                  .title ??
+                                              "",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                          style: Utils.regularTextStyle(
+                                              color: AppColor.green),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 3.w,
+                                    ),
+                                    Container(
+                                      width: 18.w,
+                                      decoration: BoxDecoration(
+                                          color: AppColor.btnUpdateBg,
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          issueList[index].task!.title ?? "",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.clip,
+                                          style: Utils.regularTextStyle(
+                                              color: AppColor.textColor2),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                PopupMenuButton(
+                                    child: Icon(
+                                      Icons.more_vert,
+                                      color: AppColor.textColor2,
+                                      size: 30,
+                                    ),
+                                    onSelected: (Menu item) {
+                                      setState(() {
+                                        Navigator.push(context,
+                                            MaterialPageRoute(builder: (_) {
+                                          return TaskIssueScreen(
+                                            tag: 0,
+                                            edit: 1,
+                                            id: issueList[index].id,
+                                            issueData: issueList[index],
+                                          );
+                                        })).then((value) {
+                                          if (value != null) {
+                                            setState(() {
+                                              issueList[index]
+                                                      .issueCategory!
+                                                      .title =
+                                                  value.issueCategory!.title;
+                                              issueList[index].title =
+                                                  value.title;
+                                            });
+                                          }
+                                        });
+                                      });
+                                    },
+                                    itemBuilder: (BuildContext context) =>
+                                        <PopupMenuEntry<Menu>>[
+                                          const PopupMenuItem<Menu>(
+                                            value: Menu.itemOne,
+                                            child: Text('Issue edit'),
+                                          ),
+                                        ]),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 3.w,
+                            ),
+                            Text(
+                              issueList[index].title ?? "",
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: Utils.regularTextStyle(
+                                  color: AppColor.textColor2),
+                            ),
+                            SizedBox(
+                              height: 3.w,
+                            ),
                             Row(
                               children: [
                                 Container(
+                                  height: 10.w,
+                                  width: 10.w,
                                   decoration: BoxDecoration(
-                                      color: AppColor.green1,
-                                      borderRadius: BorderRadius.circular(5)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      issueList[index].issueCategory!.title ??
-                                          "",
-                                      overflow: TextOverflow.clip,
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.green),
-                                    ),
-                                  ),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color: AppColor.black, width: 1)),
+                                  child: issueList[index].teamDetails?.image ==
+                                          null
+                                      ? Icon(
+                                          Icons.person,
+                                          size: 8.w,
+                                        )
+                                      : CircleAvatar(
+                                          radius: 200.0,
+                                          backgroundImage: NetworkImage(
+                                              AppString.basePath +
+                                                  issueList[index]
+                                                      .teamDetails
+                                                      ?.image),
+                                        ),
                                 ),
                                 SizedBox(
-                                  width: 5.w,
+                                  width: 2.w,
+                                ),
+                                Text(
+                                  issueList[index].teamDetails?.name ??
+                                      issueList[index].teamDetails?.mobile ??
+                                      "",
+                                  style: Utils.regularTextStyle(
+                                      color: AppColor.textColor8,
+                                      fontSize: 2.4.w),
+                                ),
+                                SizedBox(
+                                  width: 2.w,
                                 ),
                                 Container(
-                                  width: 20.w,
+                                  height: 8.w,
+                                  width: 8.w,
                                   decoration: BoxDecoration(
-                                      color: AppColor.btnUpdateBg,
-                                      borderRadius: BorderRadius.circular(5)),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      issueList[index].task!.title ?? "",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.clip,
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.textColor2),
-                                    ),
-                                  ),
+                                      image: DecorationImage(
+                                          image: AssetImage(
+                                              ImageAsset.iconSchedule))),
+                                ),
+                                SizedBox(
+                                  width: 2.w,
+                                ),
+                                Text(
+                                  outputDate,
+                                  style: Utils.regularTextStyle(
+                                      color: AppColor.textColor8,
+                                      fontSize: 2.4.w),
                                 ),
                               ],
                             ),
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (_) {
-                                  return TaskIssueScreen(
-                                    taskDetailsList: taskDetailsList,
-                                    tag: 0,
-                                    issueData: issueList[index],
-                                  );
-                                })).then((value) {
-                                  if (value != null) {
-                                    setState(() {
-                                      issueList[index] = value;
-                                    });
-                                  }
-                                });
-                              },
-                              child: SizedBox(
-                                  height: 7.w,
-                                  width: 8.w,
-                                  child: Image.asset(ImageAsset.icons_more)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 3.w,
-                        ),
-                        Text(
-                          issueList[index].title ?? "",
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                          style: Utils.regularTextStyle(
-                              color: AppColor.textColor2),
-                        ),
-                        SizedBox(
-                          height: 3.w,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              height: 10.w,
-                              width: 10.w,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: AppColor.black, width: 1)),
-                              child: issueList[index].teamDetails?.image == null
-                                  ? Icon(
-                                      Icons.person,
-                                      size: 8.w,
-                                    )
-                                  : CircleAvatar(
-                                      radius: 200.0,
-                                      backgroundImage: NetworkImage(AppString
-                                              .basePath +
-                                          issueList[index].teamDetails?.image),
-                                    ),
-                            ),
                             SizedBox(
-                              width: 2.w,
+                              height: 3.w,
                             ),
-                            Text(
-                              issueList[index].teamDetails?.name ?? "",
-                              style: Utils.regularTextStyle(
-                                  color: AppColor.textColor8, fontSize: 2.4.w),
-                            ),
-                            SizedBox(
-                              width: 2.w,
-                            ),
-                            Container(
-                              height: 8.w,
-                              width: 8.w,
-                              decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image:
-                                          AssetImage(ImageAsset.iconSchedule))),
-                            ),
-                            SizedBox(
-                              width: 2.w,
-                            ),
-                            Text(
-                              outputDate,
-                              style: Utils.regularTextStyle(
-                                  color: AppColor.textColor8, fontSize: 2.4.w),
-                            ),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 3.w,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                Navigator.push(context,
-                                    MaterialPageRoute(builder: (_) {
-                                  return IssueDetailsScreen(
-                                    data: issueList[index],
-                                  );
-                                }));
-                              },
-                              child: Container(
-                                height: 5.w,
-                                width: 5.w,
-                                decoration: BoxDecoration(
-                                    image: DecorationImage(
-                                        image:
-                                            AssetImage(ImageAsset.iconChat))),
-                              ),
-                            ),
-                            issueList[index].status == 1
-                                ? InkWell(
-                                    onTap: () {
-                                      showMyDialog(context, () {
-                                        ApiServices.poseIssueClose(
-                                                issueList[index].id!)
-                                            .then((value) {
-                                          setState(() {
-                                            issueList[index].status = value;
-                                          });
-                                        });
-                                        Navigator.of(context).pop();
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                InkWell(
+                                  onTap: () {
+                                    Navigator.push(context,
+                                        MaterialPageRoute(builder: (_) {
+                                      return IssueDetailsScreen(
+                                        data: issueList[index],
+                                      );
+                                    })).then((value) {
+                                      setState(() {
+                                        issueList[index].commentCount = value;
                                       });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(5)),
-                                          border: Border.all(
-                                              color: AppColor.red1, width: 2)),
-                                      child: Padding(
+                                    });
+                                  },
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        height: 5.w,
+                                        width: 5.w,
+                                        decoration: BoxDecoration(
+                                            image: DecorationImage(
+                                                image: AssetImage(
+                                                    ImageAsset.iconChat))),
+                                      ),
+                                      SizedBox(
+                                        width: 2,
+                                      ),
+                                      Text(
+                                        issueList[index]
+                                            .commentCount
+                                            .toString(),
+                                        style: Utils.regularTextStyle(),
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                issueList[index].status == 1
+                                    ? InkWell(
+                                        onTap: () {
+                                          closeBottomSheet(context, () {
+                                            ApiServices.poseIssueClose(
+                                                    issueList[index].id!)
+                                                .then((value) {
+                                              setState(() {
+                                                issueList[index].status = value;
+                                              });
+                                            });
+                                            Navigator.of(context).pop();
+                                          });
+                                        },
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.all(
+                                                  Radius.circular(5)),
+                                              border: Border.all(
+                                                  color: AppColor.red1,
+                                                  width: 2)),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Text(
+                                              "Close issue",
+                                              style: Utils.regularTextStyle(
+                                                  color: AppColor.red1),
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
                                           "Close issue",
                                           style: Utils.regularTextStyle(
                                               color: AppColor.red1),
-                                        ),
-                                      ),
-                                    ),
-                                  )
-                                : Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      "Close issue",
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.red1),
-                                    )),
+                                        )),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                    issueList[index].status != 1
+                        ? Padding(
+                            padding: const EdgeInsets.all(3.0),
+                            child: InkWell(
+                              onTap: () {
+                                Toasts.showToast("Issue close already");
+                              },
+                              child: Container(
+                                width: 80.w,
+                                height: 52.w,
+                                decoration: BoxDecoration(
+                                    color: AppColor.white4,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(5))),
+                              ),
+                            ),
+                          )
+                        : Container()
+                  ],
                 ),
               );
             },
@@ -1103,4 +1219,17 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
       ],
     );
   }
+}
+
+class CustomCacheManager {
+  static const key = 'customCacheKey';
+  static CacheManager instance = CacheManager(
+    Config(
+      key,
+      stalePeriod: const Duration(days: 7),
+      maxNrOfCacheObjects: 20,
+      repo: JsonCacheInfoRepository(databaseName: key),
+      fileService: HttpFileService(),
+    ),
+  );
 }

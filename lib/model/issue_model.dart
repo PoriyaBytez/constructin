@@ -94,12 +94,14 @@ class IssueData {
         status: json["status"],
         issueCategory: IssueCategory.fromJson(json["issue_category"]),
         task: json["task"] == null ? null : Task.fromJson(json["task"]),
-        teamDetails: TeamDetails.fromJson(json["team_details"]),
+        teamDetails: json["team_details"] == null
+            ? null : TeamDetails.fromJson(json["team_details"]),
         attachment: json["attachment"] == null
             ? null
             : List<CommentData>.from(
                 json["attachment"].map((x) => CommentData.fromJson(x))),
-        members: List<TeamData>.from(
+        members: json["members"] == null
+            ? null :List<TeamData>.from(
             json["members"].map((x) => TeamData.fromJson(x))),
       );
 

@@ -56,6 +56,9 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^20.1.61-beta
   internet_connection_checker: ^0.0.1+4
   photo_view: ^0.14.0
+  cached_network_image: ^3.2.1
+  flutter_cache_manager: ^3.3.0
+  flutter_image_compress: ^1.0.0-nullsafety
 
 dev_dependencies:
   flutter_test:

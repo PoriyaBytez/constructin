@@ -128,39 +128,38 @@ Widget planHorizontalList(
   );
 }
 
-Future<void> showMyDialog(BuildContext context, VoidCallback? onPressed) async {
-  return showDialog<void>(
+closeBottomSheet(BuildContext context, VoidCallback? onPressed) {
+  showModalBottomSheet(
     context: context,
-    barrierDismissible: true, // user must tap button!
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10.0),
+    ),
     builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text(
-          'Construct In',
-          style: Utils.mediumTextStyle(
-              color: AppColor.mainColor, fontSize: AppDimens.large_font),
-        ),
-        content: Text(
-          'are you sure,close issues?',
-          style: Utils.regularTextStyle(color: AppColor.black),
-        ),
-        actions: [
-          TextButton(
-            child: Text(
-              'No',
-              style: Utils.mediumTextStyle(color: AppColor.black),
+      return Container(
+        color: AppColor.white,
+        height: 15.h,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Text(
+              'are you sure, close issues ?',
+              style:
+                  Utils.regularTextStyle(color: AppColor.black, fontSize: 5.w),
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          TextButton(
-            child: Text(
-              'Yas',
-              style: Utils.mediumTextStyle(color: AppColor.black),
+            ElevatedButton(
+              child: Container(
+                child: Text(
+                  'Close',
+                  style: Utils.mediumTextStyle(
+                    color: AppColor.white,
+                    fontSize: 4.w,
+                  ),
+                ),
+              ),
+              onPressed: onPressed,
             ),
-            onPressed: onPressed,
-          ),
-        ],
+          ],
+        ),
       );
     },
   );

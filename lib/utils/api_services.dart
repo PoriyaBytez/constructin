@@ -49,6 +49,7 @@ class ApiServices {
   static const String issueCategoryMemberWiseEdit =
       'issueCategoryMemberWiseEdit';
   static const String createIssue = 'createIssue';
+  static const String issueEdit = 'issueEdit';
   static const String issueList = 'issueList';
   static const String issueRight = 'issueRight';
   static const String issueClose = 'issueClose';
@@ -640,6 +641,31 @@ class ApiServices {
     }
   }
 
+  /// edit Issue Member Wise
+  static Future<IssueData> editIssue(
+      int id, String issueCategoryId, String title, String tage) async {
+    Dio dio = getDio();
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + issueEdit,
+        data: FormData.fromMap({
+          "id": id,
+          "issueCategoryId": issueCategoryId,
+          "title": title,
+          // "tag": tage,
+        }));
+    if (response.statusCode == 200) {
+      Toasts.showToast(response.data['message']);
+      return IssueData.fromJson(response.data["data"]);
+    } else {
+      print("response: IssueModel ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+  }
+
   /// Issue List
   static Future<IssueModel> getIssueList(int id, int type) async {
     Dio dio = getDio();
@@ -665,7 +691,7 @@ class ApiServices {
   /// Issue Right
 
   static Future<TeamData> postIssueRight(
-      int issueId, int projectId, String registerUserId) async {
+      int issueId, int projectId, int registerUserId) async {
     Dio dio = getDio();
 
     dio.interceptors.add(InterceptorsWrapper(
@@ -680,7 +706,7 @@ class ApiServices {
     });
     if (response.statusCode == 200) {
       print("response: Member ${response.data}");
-      Toasts.showToast(response.statusMessage);
+      Toasts.showToast(response.data['message']);
       return TeamData.fromJson(response.data);
     } else {
       print("response: Member ${response.data['message']}");

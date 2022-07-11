@@ -2,15 +2,14 @@ import 'package:constructin/bloc/task_bloc/task_bloc.dart';
 import 'package:constructin/screen/dashboard/issues_screen.dart';
 import 'package:constructin/screen/dashboard/material_screen.dart';
 import 'package:constructin/screen/task/add_task_screen.dart';
+import 'package:constructin/screen/task/update_task_screen.dart';
 import 'package:constructin/utils/app_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get/get.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:sizer/sizer.dart';
 
-import '../../helper/route_helper.dart';
 import '../../model/issue_model.dart';
 import '../../model/project_model.dart';
 import '../../model/task_model.dart';
@@ -26,7 +25,9 @@ import 'attendance_screen.dart';
 import 'more_screen.dart';
 
 class DashBoardScreen extends StatefulWidget {
-  const DashBoardScreen({Key? key}) : super(key: key);
+  ProjectData? projectData;
+
+  DashBoardScreen({this.projectData});
 
   @override
   State<DashBoardScreen> createState() => _DashBoardScreenState();
@@ -47,7 +48,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   @override
   void initState() {
     taskBloc = BlocProvider.of<TaskBloc>(context);
-    projectData = Get.arguments;
+    projectData = widget.projectData!;
     taskRight = projectData.projectRights?.split(',');
     projectId = projectData.projectId;
     taskBloc?.add(TaskPressed(projectId: projectId!));
@@ -63,142 +64,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: AppColor.white,
-        body: Column(
-          children: [
-            Container(
-              height: 15.w,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: AppColor.white,
-                boxShadow: const <BoxShadow>[
-                  BoxShadow(
-                      color: AppColor.bg,
-                      blurRadius: 10.0,
-                      offset: Offset(0.0, 0.75))
-                ],
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(left: 5.w, top: 3.w, bottom: 3.w),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            Get.back();
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(0.0),
-                            child: SizedBox(
-                                height: 5.w,
-                                width: 7.w,
-                                child: Image.asset(ImageAsset.arrow_back)),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 5.w,
-                        ),
-                        Text(
-                          projectData.projectDetail?.projectName ?? "",
-                          style: Utils.mediumTextStyle(
-                              color: AppColor.textColor,
-                              fontSize: AppDimens.large_font),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                              right: 6.w, top: 1.w, bottom: 1.w),
-                          child: Image.asset(ImageAsset.iconFilter),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(
-                              right: 5.w, top: 1.w, bottom: 1.w),
-                          child: Image.asset(ImageAsset.iconsSearch),
-                        ),
-                        SizedBox(
-                          width: 10.w,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            selectIndex == 1
-                ? (taskRight.contains("1")
-                    ? Expanded(
-                        child: BlocListener<TaskBloc, TaskState>(
-                          listener: (context, state) {
-                            if (state is TaskLoading) {
-                              setState(() {
-                                isLoading = true;
-                              });
-                            } else if (state is TaskSuccess) {
-                              setState(() {
-                                isLoading = false;
-                                print("Size : ${state.taskModel.data!.length}");
-                                taskDetailsList = state.taskModel.data!;
-                              });
-                            }
-                          },
-                          child: Column(
-                            children: [
-                              Expanded(
-                                  child: isLoading
-                                      ? Center(
-                                          child: CircularProgressIndicator(
-                                            color: AppColor.mainColor,
-                                          ),
-                                        )
-                                      : taskDetailsList.isEmpty
-                                          ? noDataFound()
-                                          : widgetPlan()),
-                            ],
-                          ),
-                        ),
-                      )
-                    : Expanded(
-                        child: Center(child: Text("You not access Site Plan"))))
-                : selectIndex == 2
-                    ? (taskRight.contains("2")
-                        ? AttendanceScreen()
-                        : Expanded(
-                            child: Center(
-                            child: Text("You not access Attendance"),
-                          )))
-                    : selectIndex == 3
-                        ? (taskRight.contains("3")
-                            ? widgetIssueList(issueList, setState)
-                            : Expanded(
-                                child: Center(
-                                child: Text("You not access Issues"),
-                              )))
-                        : selectIndex == 4
-                            ? (taskRight.contains("4")
-                                ? MaterialScreen()
-                                : Expanded(
-                                    child: Center(
-                                      child: Text("You not access Material"),
-                                    ),
-                                  ))
-                            : selectIndex == 5
-                                ? (taskRight.contains("5")
-                                    ? MoreScreen()
-                                    : Expanded(
-                                        child: Center(
-                                          child: Text("You not access More"),
-                                        ),
-                                      ))
-                                : Container(),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: 20.w,
+          backgroundColor: AppColor.white,
+          body: Column(
+            children: [
+              Container(
+                height: 15.w,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColor.white,
@@ -210,171 +80,306 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   ],
                 ),
                 child: Padding(
-                  padding: EdgeInsets.only(left: 5.w, right: 5.w),
+                  padding: EdgeInsets.only(left: 5.w, top: 3.w, bottom: 3.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      item(
-                          1,
-                          selectIndex == 1
-                              ? ImageAsset.iconPlan
-                              : ImageAsset.iconPlan1,
-                          "Plan", () {
-                        setState(() {
-                          selectIndex = 1;
-                        });
-                      }),
-                      item(
-                          2,
-                          selectIndex == 2
-                              ? ImageAsset.iconAttendance
-                              : ImageAsset.iconAttendance1,
-                          "Attendance", () {
-                        setState(() {
-                          selectIndex = 2;
-                        });
-                      }),
-                      item(
-                          3,
-                          selectIndex == 3
-                              ? ImageAsset.iconIssues
-                              : ImageAsset.iconIssues1,
-                          "Issues", () {
-                        setState(() {
-                          selectIndex = 3;
-                        });
-                      }),
-                      item(
-                          4,
-                          selectIndex == 4
-                              ? ImageAsset.iconMaterial
-                              : ImageAsset.iconMaterial1,
-                          "Material", () {
-                        setState(() {
-                          selectIndex = 4;
-                        });
-                      }),
-                      item(
-                          5,
-                          selectIndex == 5
-                              ? ImageAsset.iconMore
-                              : ImageAsset.iconMore,
-                          "More", () {
-                        setState(() {
-                          selectIndex = 5;
-                        });
-                      }),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              Navigator.pop(context, issueList.length);
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(0.0),
+                              child: SizedBox(
+                                  height: 5.w,
+                                  width: 7.w,
+                                  child: Image.asset(ImageAsset.arrow_back)),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 5.w,
+                          ),
+                          Text(
+                            projectData.projectDetail?.projectName ?? "",
+                            style: Utils.mediumTextStyle(
+                                color: AppColor.textColor,
+                                fontSize: AppDimens.large_font),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                                right: 6.w, top: 1.w, bottom: 1.w),
+                            child: Image.asset(ImageAsset.iconFilter),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                right: 5.w, top: 1.w, bottom: 1.w),
+                            child: Image.asset(ImageAsset.iconsSearch),
+                          ),
+                          SizedBox(
+                            width: 10.w,
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
               ),
-            )
-          ],
-        ),
-        floatingActionButton: taskDetailsList.isEmpty
-            ? Container()
-            : selectIndex == 1
-                ? Padding(
-                    padding: EdgeInsets.only(bottom: 22.w),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) {
-                          return AddTaskScreen(
-                            projectId: projectId!,
-                          );
-                        })).then((value) {
-                          if (value != null) {
-                            for (int i = 0; i < value.data.length; i++) {
-                              setState(() {
-                                taskDetailsList.add(value.data[i]);
-                              });
-                            }
-                          }
-                        });
-                      },
-                      child: Container(
-                          height: 10.w,
-                          width: 30.w,
-                          decoration: BoxDecoration(
-                              boxShadow: const <BoxShadow>[
-                                BoxShadow(
-                                    color: AppColor.white3,
-                                    blurRadius: 50.0,
-                                    offset: Offset(0.0, 0.75))
-                              ],
-                              color: AppColor.floatBg1,
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(50))),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.add_circle_outline,
-                                color: AppColor.textColor3,
-                              ),
-                              SizedBox(
-                                width: 1.w,
-                              ),
-                              Text(
-                                "Add Task",
-                                style: Utils.regularTextStyle(),
-                              )
-                            ],
-                          )),
-                    ),
-                  )
-                : selectIndex == 3
-                    ? Padding(
-                        padding: EdgeInsets.only(bottom: 22.w),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.push(context,
-                                MaterialPageRoute(builder: (_) {
-                              return TaskIssueScreen(
-                                tag: 1,
-                                projectID: projectId,
-                              );
-                            })).then((value) {
-                              if (value != null) {
+              selectIndex == 1
+                  ? (taskRight.contains("1")
+                      ? Expanded(
+                          child: BlocListener<TaskBloc, TaskState>(
+                            listener: (context, state) {
+                              if (state is TaskLoading) {
                                 setState(() {
-                                  issueList.add(value);
+                                  isLoading = true;
+                                });
+                              } else if (state is TaskSuccess) {
+                                setState(() {
+                                  isLoading = false;
+                                  print(
+                                      "Size : ${state.taskModel.data!.length}");
+                                  taskDetailsList = state.taskModel.data!;
                                 });
                               }
-                            });
-                          },
-                          child: Container(
-                              height: 10.w,
-                              width: 30.w,
-                              decoration: BoxDecoration(
-                                  boxShadow: const <BoxShadow>[
-                                    BoxShadow(
-                                        color: AppColor.white3,
-                                        blurRadius: 50.0,
-                                        offset: Offset(0.0, 0.75))
+                            },
+                            child: Column(
+                              children: [
+                                Expanded(
+                                    child: isLoading
+                                        ? Container(
+                                            child: Center(
+                                              child: CircularProgressIndicator(
+                                                color: AppColor.mainColor,
+                                              ),
+                                            ),
+                                          )
+                                        : taskDetailsList.isEmpty
+                                            ? noDataFound()
+                                            : widgetPlan()),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Expanded(
+                          child:
+                              Center(child: Text("You not access Site Plan"))))
+                  : selectIndex == 2
+                      ? (taskRight.contains("2")
+                          ? AttendanceScreen()
+                          : Expanded(
+                              child: Center(
+                              child: Text("You not access Attendance"),
+                            )))
+                      : selectIndex == 3
+                          ? (taskRight.contains("1")
+                              ? widgetIssueList(issueList, setState)
+                              : Expanded(
+                                  child: Center(
+                                  child: Text("You not access Issues"),
+                                )))
+                          : selectIndex == 4
+                              ? (taskRight.contains("4")
+                                  ? MaterialScreen()
+                                  : Expanded(
+                                      child: Center(
+                                        child: Text("You not access Material"),
+                                      ),
+                                    ))
+                              : selectIndex == 5
+                                  ? (taskRight.contains("5")
+                                      ? MoreScreen()
+                                      : Expanded(
+                                          child: Center(
+                                            child: Text("You not access More"),
+                                          ),
+                                        ))
+                                  : Container(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  height: 20.w,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: AppColor.white,
+                    boxShadow: const <BoxShadow>[
+                      BoxShadow(
+                          color: AppColor.bg,
+                          blurRadius: 10.0,
+                          offset: Offset(0.0, 0.75))
+                    ],
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 5.w, right: 5.w),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        item(
+                            1,
+                            selectIndex == 1
+                                ? ImageAsset.iconPlan
+                                : ImageAsset.iconPlan1,
+                            "Plan", () {
+                          setState(() {
+                            selectIndex = 1;
+                          });
+                        }),
+                        item(
+                            2,
+                            selectIndex == 2
+                                ? ImageAsset.iconAttendance
+                                : ImageAsset.iconAttendance1,
+                            "Attendance", () {
+                          setState(() {
+                            selectIndex = 2;
+                          });
+                        }),
+                        item(
+                            3,
+                            selectIndex == 3
+                                ? ImageAsset.iconIssues
+                                : ImageAsset.iconIssues1,
+                            "Issues", () {
+                          setState(() {
+                            selectIndex = 3;
+                          });
+                        }),
+                        item(
+                            4,
+                            selectIndex == 4
+                                ? ImageAsset.iconMaterial
+                                : ImageAsset.iconMaterial1,
+                            "Material", () {
+                          setState(() {
+                            selectIndex = 4;
+                          });
+                        }),
+                        item(
+                            5,
+                            selectIndex == 5
+                                ? ImageAsset.iconMore
+                                : ImageAsset.iconMore1,
+                            "More", () {
+                          setState(() {
+                            selectIndex = 5;
+                          });
+                        }),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            ],
+          ),
+          floatingActionButton: selectIndex == 3
+              ? Padding(
+                  padding: EdgeInsets.only(bottom: 22.w),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
+                        return TaskIssueScreen(
+                          tag: 1,
+                          edit: 0,
+                          projectID: projectId,
+                        );
+                      })).then((value) {
+                        if (value != null) {
+                          setState(() {
+                            issueList.add(value);
+                          });
+                        }
+                      });
+                    },
+                    child: Container(
+                        height: 10.w,
+                        width: 30.w,
+                        decoration: BoxDecoration(
+                            boxShadow: const <BoxShadow>[
+                              BoxShadow(
+                                  color: AppColor.white3,
+                                  blurRadius: 50.0,
+                                  offset: Offset(0.0, 0.75))
+                            ],
+                            color: AppColor.floatBg1,
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(50))),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_circle_outline,
+                              color: AppColor.textColor3,
+                            ),
+                            SizedBox(
+                              width: 1.w,
+                            ),
+                            Text(
+                              "Add Issue",
+                              style: Utils.regularTextStyle(),
+                            )
+                          ],
+                        )),
+                  ),
+                )
+              : taskDetailsList.isEmpty
+                  ? Container()
+                  : selectIndex == 1
+                      ? Padding(
+                          padding: EdgeInsets.only(bottom: 22.w),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(context,
+                                  MaterialPageRoute(builder: (_) {
+                                return AddTaskScreen(
+                                  projectId: projectId!,
+                                );
+                              })).then((value) {
+                                if (value != null) {
+                                  for (int i = 0; i < value.data.length; i++) {
+                                    setState(() {
+                                      taskDetailsList.add(value.data[i]);
+                                    });
+                                  }
+                                }
+                              });
+                            },
+                            child: Container(
+                                height: 10.w,
+                                width: 30.w,
+                                decoration: BoxDecoration(
+                                    boxShadow: const <BoxShadow>[
+                                      BoxShadow(
+                                          color: AppColor.white3,
+                                          blurRadius: 50.0,
+                                          offset: Offset(0.0, 0.75))
+                                    ],
+                                    color: AppColor.floatBg1,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(50))),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.add_circle_outline,
+                                      color: AppColor.textColor3,
+                                    ),
+                                    SizedBox(
+                                      width: 1.w,
+                                    ),
+                                    Text(
+                                      "Add Task",
+                                      style: Utils.regularTextStyle(),
+                                    )
                                   ],
-                                  color: AppColor.floatBg1,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(50))),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.add_circle_outline,
-                                    color: AppColor.textColor3,
-                                  ),
-                                  SizedBox(
-                                    width: 1.w,
-                                  ),
-                                  Text(
-                                    "Add Issue",
-                                    style: Utils.regularTextStyle(),
-                                  )
-                                ],
-                              )),
-                        ),
-                      )
-                    : Container(),
-      ),
+                                )),
+                          ),
+                        )
+                      : Container()),
     );
   }
 
@@ -560,8 +565,18 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   children: [
                                     InkWell(
                                       onTap: () {
-                                        Get.toNamed(RouteHelper.updateTask,
-                                            arguments: taskDetailsList[index]);
+                                        Navigator.push(context,
+                                            MaterialPageRoute(builder: (_) {
+                                          return UpdateTaskScreen(
+                                            taskDetailsList:
+                                                taskDetailsList[index],
+                                          );
+                                        })).then((value) {
+                                          setState(() {
+                                            taskDetailsList[index]
+                                                .issues_count = value;
+                                          });
+                                        });
                                       },
                                       child: Container(
                                         decoration: BoxDecoration(
@@ -625,11 +640,15 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   child: CircularPercentIndicator(
                                     radius: 25.0,
                                     lineWidth: 5.0,
-                                    percent: 0.1,
+                                    percent: double.parse(taskDetailsList[index]
+                                                .taskProgress ??
+                                            "0.0") /
+                                        100,
                                     center: Text(
-                                      "10%",
+                                      "${taskDetailsList[index].taskProgress}%",
                                       style: Utils.regularTextStyle(
-                                          color: AppColor.progressPercent),
+                                          color: AppColor.progressPercent,
+                                          fontSize: 8.0),
                                     ),
                                     progressColor: Colors.green,
                                   ),

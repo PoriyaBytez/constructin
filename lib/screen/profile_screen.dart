@@ -182,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ? imageUrl == ""
                                         ? Icon(
                                             Icons.person,
-                                            size: 20.w,
+                                            size: 13.w,
                                           )
                                         : CircleAvatar(
                                             radius: 200.0,
@@ -392,7 +392,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             TextButton(
               child: Text(
-                'Yas',
+                'Yes',
                 style: Utils.mediumTextStyle(color: AppColor.black),
               ),
               onPressed: () {
