@@ -5,10 +5,12 @@ import 'package:constructin/model/company_role_model.dart';
 import 'package:constructin/model/project_type_model.dart';
 import 'package:constructin/model/task_details_model.dart';
 import 'package:constructin/model/task_image_model.dart';
+import 'package:constructin/model/task_review_model.dart';
 import 'package:constructin/model/team_model.dart';
 import 'package:constructin/model/unit_list_model.dart';
 import 'package:constructin/utils/shared_preferences/preferences_key.dart';
 import 'package:constructin/utils/toasts.dart';
+import 'package:constructin/utils/util.dart';
 import 'package:dio/dio.dart';
 
 import '../model/comment_model.dart';
@@ -22,7 +24,7 @@ import 'shared_preferences/preferences_manager.dart';
 class ApiServices {
   static const String base = "https://admin.constructin.net/api/";
 
-  // static const String base = "192.168.1.17:8000/api/";
+  // static const String base = "http://192.168.1.35:8000/api/";
   static const String login = 'login';
   static const String projectType = 'projectType';
   static const String projectCreate = 'projectCreate';
@@ -55,6 +57,8 @@ class ApiServices {
   static const String issueClose = 'issueClose';
   static const String createComment = 'createComment';
   static const String commentList = 'commentList';
+  static const String taskReview = 'taskReview';
+  static const String taskImageDelete = 'taskImageDelete';
 
   static Dio getDio() {
     String strUserData = PreferencesManager.getString(PreferencesKey.userModel);
@@ -216,7 +220,7 @@ class ApiServices {
   }
 
   ///  taskDetails date wise
-  static Future<dynamic> getDetails(int taskId, String date) async {
+  static Future<dynamic> getDetails(int taskId, String inDate) async {
     Dio dio = getDio();
     dio.interceptors.add(InterceptorsWrapper(
       onResponse: (e, handler) {
@@ -224,7 +228,7 @@ class ApiServices {
       },
     ));
     final response = await dio.post(base + taskDetails,
-        data: {"taskId": taskId.toString(), "date": date});
+        data: {"taskId": taskId.toString(), "date": Utils.passData(inDate)});
     if (response.statusCode == 200) {
       print("response: DetailsData ${response.data}");
       return TaskDetailsData.fromJson(response.data["data"]);
@@ -689,7 +693,6 @@ class ApiServices {
   }
 
   /// Issue Right
-
   static Future<TeamData> postIssueRight(
       int issueId, int projectId, int registerUserId) async {
     Dio dio = getDio();
@@ -762,6 +765,7 @@ class ApiServices {
     }
   }
 
+  /// Comment List get
   static Future<CommentModel> getCommentList(int id) async {
     Dio dio = getDio();
 
@@ -777,6 +781,44 @@ class ApiServices {
     } else {
       print("response: CommentModel ${response.data['message']}");
       throw Exception('Failed to post.');
+    }
+  }
+
+  /// get Task View
+  static Future<TaskReviewData>? getTaskView(int id) async {
+    TaskReviewData taskDetailsModel = TaskReviewData();
+    Dio dio = getDio();
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + taskReview, data: {"id": id});
+    if (response.statusCode == 200) {
+      print("response: TaskView ${response.data}");
+      taskDetailsModel = TaskReviewData.fromJson(response.data["data"]);
+    } else {
+      print("response: TaskView ${response.data['message']}");
+      throw Exception('Failed to post.');
+    }
+    return taskDetailsModel;
+  }
+
+  /// get Task View
+  static imageDelete(int taskId, int taskImageId) async {
+    Dio dio = getDio();
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + taskImageDelete,
+        data: {"taskId": taskId, "taskImageId": taskImageId});
+    if (response.statusCode == 200) {
+      print("response: taskImageDelete ${response.data}");
+      Toasts.showToast("${response.data['message']}");
+    } else {
+      print("response: taskImageDelete ${response.data['message']}");
     }
   }
 }

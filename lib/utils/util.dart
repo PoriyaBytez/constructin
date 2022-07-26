@@ -5,6 +5,7 @@ import 'package:constructin/utils/shared_preferences/preferences_manager.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:intl/intl.dart';
 import 'package:sizer/sizer.dart';
 
 import 'app_color.dart';
@@ -177,7 +178,8 @@ class Utils {
     'Not started',
     'In progress',
     'Slow',
-    'Delayed'
+    'Delayed',
+    'Completed'
   ];
 
   static int daysElapsedSince(DateTime from, DateTime to) {
@@ -209,4 +211,21 @@ class Utils {
     }
     return quality;
   }
+
+  static String showData(String? date) {
+    if (date!.isNotEmpty) {
+      DateTime parseDate = DateFormat("yyyy-MM-dd").parse(date);
+      var outputFormat = DateFormat("dd/MM/yyyy");
+      return outputFormat.format(DateTime.parse(parseDate.toString()));
+    }
+    return "";
+  }
+
+  static String passData(String date) {
+    DateTime parseDate = DateFormat("dd/MM/yyyy").parse(date);
+    var outputFormat = DateFormat("yyyy-MM-dd");
+    return outputFormat.format(DateTime.parse(parseDate.toString()));
+  }
+
+
 }

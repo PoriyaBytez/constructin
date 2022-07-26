@@ -2,7 +2,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:constructin/helper/route_helper.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
-import 'package:constructin/utils/unil.dart';
+import 'package:constructin/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';

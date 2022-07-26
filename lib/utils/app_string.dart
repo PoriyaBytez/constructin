@@ -25,6 +25,7 @@ class AppString {
   static String strEnterLocation = "Enter Location";
   static String strEnterTaskName = "Enter Task Name";
   static String strEnterQuantity = "Enter Quantity";
+  static String strNos = "No'S";
   static String strEnterIssueDescription = "Enter issue description";
   static String strAddTaskName = "Add Task Name";
   static String strSelectIssueCategory = "Select issue category";
@@ -46,4 +47,5 @@ class AppString {
   static String strAddAnotherTask = "add another task to this category";
   static String strAddTeamMember =
       "Add team members and assign them their role on the Project";
+  static String strCloseIssue = "Close issue";
 }

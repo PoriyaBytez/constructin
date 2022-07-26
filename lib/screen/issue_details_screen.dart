@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -9,9 +10,7 @@ import 'package:constructin/utils/app_dimens.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:dio/dio.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +27,7 @@ import '../utils/app_string.dart';
 import '../utils/shared_preferences/preferences_key.dart';
 import '../utils/shared_preferences/preferences_manager.dart';
 import '../utils/toasts.dart';
-import '../utils/unil.dart';
+import '../utils/util.dart';
 import '../widget/comman_widget.dart';
 import '../widget/text_form_field.dart';
 
@@ -61,13 +60,15 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   FocusNode commentNode = FocusNode();
   List<CommentData> commentList = [];
   List<CommentData> attachment = [];
+  final ScrollController controller = ScrollController();
 
   @override
   void initState() {
-    print("size : ${widget.data.attachment!.length}");
     var outputFormat = DateFormat("hh:mm a, dd MMM, yyyy");
     outputDate = outputFormat.format(widget.data.createdAt!);
-    attachment = widget.data.attachment!;
+    if (widget.data.attachment != null) {
+      attachment = widget.data.attachment!;
+    }
     getTeamList();
     getCommentList();
     super.initState();
@@ -81,7 +82,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
             .toList();
         for (int i = 0; i < allTeamMember.length; i++) {
           setState(() {
-            print(" issue Right  ${allTeamMember[i].teamDataList.issuesRight}");
             final issuesRight = allTeamMember[i].teamDataList.issuesRight;
             if (issuesRight != null) {
               List mList = (issuesRight.split(','));
@@ -102,8 +102,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     });
   }
 
-  getCommentList() {
-    ApiServices.getCommentList(widget.data.id!).then((value) {
+  getCommentList() async {
+    await ApiServices.getCommentList(widget.data.id!).then((value) {
       setState(() {
         commentList = value.data!;
       });
@@ -113,6 +113,11 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         }
       }
     });
+    if (commentList.isNotEmpty) {
+      Timer(Duration(milliseconds: 100), () async {
+        _navigateToTop();
+      });
+    }
   }
 
   @override
@@ -120,600 +125,628 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColor.white,
-        body: Column(
-          children: [
-            appBar("Material Shortage", () {
-              Navigator.pop(context, commentList.length);
-            }),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(
-                    top: 8.w, left: 4.w, right: 3.w, bottom: 3.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                  color: AppColor.green1,
-                                  borderRadius: BorderRadius.circular(5)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  widget.data.issueCategory?.title ?? '',
-                                  style: Utils.regularTextStyle(
-                                      color: AppColor.green),
+        body: WillPopScope(
+          onWillPop: () {
+            Navigator.pop(context, commentList.length);
+            return Future(() => false);
+          },
+          child: Column(
+            children: [
+              appBar("Material Shortage", () {
+                Navigator.pop(context, commentList.length);
+              }),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                      top: 8.w, left: 4.w, right: 3.w, bottom: 3.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: AppColor.green1,
+                                    borderRadius: BorderRadius.circular(5)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    widget.data.issueCategory?.title ?? "",
+                                    style: Utils.regularTextStyle(
+                                        color: AppColor.green),
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(
-                              width: 5.w,
-                            ),
-                            widget.data.tag == null
-                                ? Container(
-                                    decoration: BoxDecoration(
-                                        color: AppColor.btnUpdateBg,
-                                        borderRadius: BorderRadius.circular(5)),
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Text(
-                                        widget.data.task.title ?? "",
-                                        style: Utils.regularTextStyle(
-                                            color: AppColor.textColor2),
+                              SizedBox(
+                                width: 5.w,
+                              ),
+                              widget.data.tag == null
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                          color: AppColor.btnUpdateBg,
+                                          borderRadius:
+                                              BorderRadius.circular(5)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          widget.data.task.title ?? "",
+                                          style: Utils.regularTextStyle(
+                                              color: AppColor.textColor2),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                : Container(),
-                          ],
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 3.w,
-                    ),
-                    Text(
-                      widget.data.title ?? "",
-                      maxLines: 10,
-                      style: Utils.regularTextStyle(
-                          color: AppColor.textColor3,
-                          fontSize: AppDimens.large_font),
-                    ),
-                    SizedBox(
-                      height: 3.w,
-                    ),
-                    Row(
-                      children: [
-                        Container(
-                          height: 8.w,
-                          width: 8.w,
-                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: AppColor.black, width: 1)),
-                          child: widget.data.teamDetails?.image == null
-                              ? Icon(
-                                  Icons.person,
-                                  size: 5.w,
-                                )
-                              : CircleAvatar(
-                                  radius: 200.0,
-                                  backgroundImage: NetworkImage(
-                                      AppString.basePath +
-                                          widget.data.teamDetails?.image),
-                                ),
-                        ),
-                        SizedBox(
-                          width: 2.w,
-                        ),
-                        Text(
-                          widget.data.teamDetails?.name ?? "",
-                          style: Utils.regularTextStyle(
-                              color: AppColor.textColor8, fontSize: 2.4.w),
-                        ),
-                        SizedBox(
-                          width: 2.w,
-                        ),
-                        Container(
-                          height: 8.w,
-                          width: 8.w,
-                          decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: AssetImage(ImageAsset.iconSchedule))),
-                        ),
-                        SizedBox(
-                          width: 2.w,
-                        ),
-                        Text(
-                          outputDate,
-                          style: Utils.regularTextStyle(
-                              color: AppColor.textColor8, fontSize: 2.4.w),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 10.w,
-                    ),
-                    Container(
-                      height: 10.w,
-                      color: AppColor.textFormFieldBg,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectIndex = 1;
-                              });
-                            },
-                            child: Text(
-                              "Comments",
-                              style: Utils.regularTextStyle(
-                                  color: selectIndex == 1
-                                      ? AppColor.textColor2
-                                      : AppColor.textColor3),
-                            ),
-                          ),
-                          Container(
-                            width: 2,
-                            color: AppColor.floatBg1,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectIndex = 3;
-                              });
-                            },
-                            child: Text(
-                              "Details",
-                              style: Utils.regularTextStyle(
-                                  color: selectIndex == 3
-                                      ? AppColor.textColor2
-                                      : AppColor.textColor3),
-                            ),
-                          ),
-                          Container(
-                            width: 2,
-                            color: AppColor.floatBg1,
-                          ),
-                          InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectIndex = 2;
-                              });
-                            },
-                            child: Text(
-                              "Attachments",
-                              style: Utils.regularTextStyle(
-                                  color: selectIndex == 2
-                                      ? AppColor.textColor2
-                                      : AppColor.textColor3),
-                            ),
+                                    )
+                                  : Container(),
+                            ],
                           ),
                         ],
                       ),
-                    ),
-                    SizedBox(
-                      height: 10.w,
-                    ),
-                    selectIndex == 1
-                        ? Expanded(
-                            child: commentList.isEmpty
-                                ? Container(
-                                    child:
-                                        Center(child: Text("Not Data Found")),
+                      SizedBox(
+                        height: 3.w,
+                      ),
+                      Text(
+                        widget.data.title ?? "",
+                        maxLines: 10,
+                        style: Utils.regularTextStyle(
+                            color: AppColor.textColor3,
+                            fontSize: AppDimens.large_font),
+                      ),
+                      SizedBox(
+                        height: 3.w,
+                      ),
+                      Row(
+                        children: [
+                          Container(
+                            height: 8.w,
+                            width: 8.w,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColor.black, width: 1)),
+                            child: widget.data.teamDetails?.image == null
+                                ? Icon(
+                                    Icons.person,
+                                    size: 5.w,
                                   )
-                                : commentList.length == 0
-                                    ? Center(
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    : ListView.builder(
-                                        shrinkWrap: true,
-                                        itemCount: commentList.length,
-                                        itemBuilder: (context, index) {
-                                          var path;
-                                          if (commentList[index].image !=
-                                              null) {
-                                            path = commentList[index]
-                                                .image
-                                                ?.split(".")
-                                                .last;
-                                          }
-                                          return Card(
-                                            child: Padding(
-                                              padding: EdgeInsets.only(
-                                                  top: 3.w,
-                                                  bottom: 3.w,
-                                                  left: 3.w,
-                                                  right: 3.w),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    "just now",
-                                                    style:
-                                                        Utils.regularTextStyle(
-                                                            color: AppColor
-                                                                .textColor8,
-                                                            fontSize: AppDimens
-                                                                .default_font),
-                                                  ),
-                                                  Row(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Container(
-                                                        height: 8.w,
-                                                        width: 8.w,
-                                                        decoration: BoxDecoration(
-                                                            shape:
-                                                                BoxShape.circle,
-                                                            border: Border.all(
-                                                                color: AppColor
-                                                                    .black,
-                                                                width: 1)),
-                                                        child: commentList[
-                                                                        index]
-                                                                    .members
-                                                                    .image ==
-                                                                null
-                                                            ? Icon(
-                                                                Icons.person,
-                                                                size: 5.w,
-                                                              )
-                                                            : CircleAvatar(
-                                                                radius: 200.0,
-                                                                backgroundImage: NetworkImage(AppString
-                                                                        .basePath +
-                                                                    commentList[
-                                                                            index]
-                                                                        .members
-                                                                        ?.image),
-                                                              ),
-                                                      ),
-                                                      SizedBox(
-                                                        width: 3.w,
-                                                      ),
-                                                      commentList[index]
+                                : CircleAvatar(
+                                    radius: 200.0,
+                                    backgroundImage: NetworkImage(
+                                        AppString.basePath +
+                                            widget.data.teamDetails?.image),
+                                  ),
+                          ),
+                          SizedBox(
+                            width: 2.w,
+                          ),
+                          Text(
+                            widget.data.teamDetails?.name ?? "",
+                            style: Utils.regularTextStyle(
+                                color: AppColor.textColor8, fontSize: 2.4.w),
+                          ),
+                          SizedBox(
+                            width: 2.w,
+                          ),
+                          Container(
+                            height: 8.w,
+                            width: 8.w,
+                            decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image:
+                                        AssetImage(ImageAsset.iconSchedule))),
+                          ),
+                          SizedBox(
+                            width: 2.w,
+                          ),
+                          Text(
+                            outputDate,
+                            style: Utils.regularTextStyle(
+                                color: AppColor.textColor8, fontSize: 2.4.w),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 10.w,
+                      ),
+                      Container(
+                        height: 10.w,
+                        color: AppColor.textFormFieldBg,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectIndex = 1;
+                                });
+                              },
+                              child: Text(
+                                "Comments",
+                                style: Utils.regularTextStyle(
+                                    color: selectIndex == 1
+                                        ? AppColor.textColor2
+                                        : AppColor.textColor3),
+                              ),
+                            ),
+                            Container(
+                              width: 2,
+                              color: AppColor.floatBg1,
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectIndex = 3;
+                                });
+                              },
+                              child: Text(
+                                "Details",
+                                style: Utils.regularTextStyle(
+                                    color: selectIndex == 3
+                                        ? AppColor.textColor2
+                                        : AppColor.textColor3),
+                              ),
+                            ),
+                            Container(
+                              width: 2,
+                              color: AppColor.floatBg1,
+                            ),
+                            InkWell(
+                              onTap: () {
+                                setState(() {
+                                  selectIndex = 2;
+                                });
+                              },
+                              child: Text(
+                                "Attachments",
+                                style: Utils.regularTextStyle(
+                                    color: selectIndex == 2
+                                        ? AppColor.textColor2
+                                        : AppColor.textColor3),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 10.w,
+                      ),
+                      selectIndex == 1
+                          ?   Expanded(
+                              child: commentList.length == 0
+                                  ? Center(child: Text("Not Data Found"))
+                                  : ListView.builder(
+                                      shrinkWrap: true,
+                                      controller: controller,
+                                      itemCount: commentList.length,
+                                      itemBuilder: (context, index) {
+                                        var path;
+                                        if (commentList[index].image != null) {
+                                          path = commentList[index]
+                                              .image
+                                              ?.split(".")
+                                              .last;
+                                        }
+                                        return Card(
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                                top: 3.w,
+                                                bottom: 3.w,
+                                                left: 3.w,
+                                                right: 3.w),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  "just now",
+                                                  style: Utils.regularTextStyle(
+                                                      color:
+                                                          AppColor.textColor8,
+                                                      fontSize: AppDimens
+                                                          .default_font),
+                                                ),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Container(
+                                                      height: 8.w,
+                                                      width: 8.w,
+                                                      decoration: BoxDecoration(
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          border: Border.all(
+                                                              color: AppColor
+                                                                  .black,
+                                                              width: 1)),
+                                                      child: commentList[index]
+                                                                  .members
                                                                   .image ==
                                                               null
-                                                          ? Text(
-                                                              commentList[index]
-                                                                      .comment ??
-                                                                  "",
-                                                              style: Utils.regularTextStyle(
-                                                                  color: AppColor
-                                                                      .black,
-                                                                  fontSize:
-                                                                      AppDimens
-                                                                          .default_font),
+                                                          ? Icon(
+                                                              Icons.person,
+                                                              size: 5.w,
                                                             )
-                                                          : InkWell(
-                                                              onTap: () {
-                                                                Navigator.push(
-                                                                    context,
-                                                                    MaterialPageRoute(
-                                                                        builder:
-                                                                            (_) {
-                                                                  return FullScreen(
-                                                                      url: commentList[
-                                                                              index]
-                                                                          .image!,
-                                                                      extention:
-                                                                          path!);
-                                                                }));
-                                                              },
-                                                              child: Padding(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                            .all(
-                                                                        8.0),
-                                                                child: path !=
-                                                                        "pdf"
-                                                                    ? Container(
-                                                                        height:
-                                                                            20.w,
-                                                                        width:
-                                                                            20.w,
-                                                                        decoration: BoxDecoration(
-                                                                            borderRadius:
-                                                                                BorderRadius.all(Radius.circular(5)),
-                                                                            image: DecorationImage(image: NetworkImage((AppString.basePath) + (commentList[index].image ?? "")), fit: BoxFit.cover)),
-                                                                      )
-                                                                    : Icon(
-                                                                        Icons
-                                                                            .picture_as_pdf_outlined,
-                                                                        size: 10
-                                                                            .w,
-                                                                      ),
-                                                              ),
+                                                          : CircleAvatar(
+                                                              radius: 200.0,
+                                                              backgroundImage: NetworkImage(AppString
+                                                                      .basePath +
+                                                                  commentList[
+                                                                          index]
+                                                                      .members
+                                                                      ?.image),
                                                             ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                          )
-                        : selectIndex == 2
-                            ? Expanded(
-                                child: widget.data.attachment!.isEmpty ? Container(
-                                  child: Center(
-                                      child: Text("Not Data Found")),
-                                ): GridView.builder(
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 3,
-                                ),
-                                itemCount: widget.data.attachment!.length,
-                                addAutomaticKeepAlives: false,
-                                itemBuilder: (context, index) {
-                                  final path = widget
-                                      .data.attachment![index].image
-                                      ?.split(".")
-                                      .last;
-                                  print(path?.split(".").last);
-                                  print("extenstion $path");
-                                  return InkWell(
-                                    onTap: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (_) {
-                                        return FullScreen(
-                                            url: widget
-                                                .data.attachment![index].image,
-                                            extention: path!);
-                                      }));
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: path != "pdf"
-                                          ? ClipRRect(
-                                              borderRadius:
-                                                  BorderRadius.circular(5),
-                                              child: CachedNetworkImage(
-                                                height: 10.w,
-                                                width: 10.w,
-                                                fit: BoxFit.cover,
-                                                imageUrl: (AppString.basePath) +
-                                                    (attachment[index].image ??
-                                                        ""),
-                                                progressIndicatorBuilder:
-                                                    (context, url,
-                                                            downloadProgress) =>
-                                                        Center(
-                                                  child: Container(
-                                                    height: 10.w,
-                                                    width: 10.w,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                            value:
-                                                                downloadProgress
-                                                                    .progress),
-                                                  ),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 3.w,
+                                                    ),
+                                                    commentList[index].image ==
+                                                            null
+                                                        ? Text(
+                                                            commentList[index]
+                                                                    .comment ??
+                                                                "",
+                                                            style: Utils.regularTextStyle(
+                                                                color: AppColor
+                                                                    .black,
+                                                                fontSize: AppDimens
+                                                                    .default_font),
+                                                          )
+                                                        : InkWell(
+                                                            onTap: () {
+                                                              Navigator.push(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                      builder:
+                                                                          (_) {
+                                                                return FullScreen(
+                                                                    url: commentList[
+                                                                            index]
+                                                                        .image!,
+                                                                    extention:
+                                                                        path!,);
+                                                              }));
+                                                            },
+                                                            child: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(8.0),
+                                                              child: path !=
+                                                                      "pdf"
+                                                                  ? Container(
+                                                                      height:
+                                                                          20.w,
+                                                                      width:
+                                                                          20.w,
+                                                                      decoration: BoxDecoration(
+                                                                          borderRadius: BorderRadius.all(Radius.circular(
+                                                                              5)),
+                                                                          image: DecorationImage(
+                                                                              image: NetworkImage((AppString.basePath) + (commentList[index].image ?? "")),
+                                                                              fit: BoxFit.cover)),
+                                                                    )
+                                                                  : Icon(
+                                                                      Icons
+                                                                          .picture_as_pdf_outlined,
+                                                                      size:
+                                                                          10.w,
+                                                                    ),
+                                                            ),
+                                                          ),
+                                                  ],
                                                 ),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        Icon(Icons.error),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            )
+                          : selectIndex == 2
+                              ? Expanded(
+                                  child: widget.data.attachment!.isEmpty
+                                      ? Container(
+                                          child: Center(
+                                              child: Text("Not Data Found")),
+                                        )
+                                      : GridView.builder(
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 3,
+                                          ),
+                                          itemCount:
+                                              widget.data.attachment!.length,
+                                          addAutomaticKeepAlives: false,
+                                          itemBuilder: (context, index) {
+                                            final path = widget
+                                                .data.attachment![index].image
+                                                ?.split(".")
+                                                .last;
+                                            print(path?.split(".").last);
+                                            print("extenstion $path");
+                                            return InkWell(
+                                              onTap: () {
+                                                Navigator.push(context,
+                                                    MaterialPageRoute(
+                                                        builder: (_) {
+                                                  return FullScreen(
+                                                      url: widget
+                                                          .data
+                                                          .attachment![index]
+                                                          .image,
+                                                      extention: path!);
+                                                }));
+                                              },
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: path != "pdf"
+                                                    ? ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(5),
+                                                        child:
+                                                            CachedNetworkImage(
+                                                          height: 10.w,
+                                                          width: 10.w,
+                                                          fit: BoxFit.cover,
+                                                          imageUrl: (AppString
+                                                                  .basePath) +
+                                                              (attachment[index]
+                                                                      .image ??
+                                                                  ""),
+                                                          progressIndicatorBuilder:
+                                                              (context, url,
+                                                                      downloadProgress) =>
+                                                                  Center(
+                                                            child: Container(
+                                                              height: 10.w,
+                                                              width: 10.w,
+                                                              child: CircularProgressIndicator(
+                                                                  value: downloadProgress
+                                                                      .progress),
+                                                            ),
+                                                          ),
+                                                          errorWidget: (context,
+                                                                  url, error) =>
+                                                              Icon(Icons.error),
+                                                        ),
+                                                      )
+                                                    : Icon(
+                                                        Icons
+                                                            .picture_as_pdf_outlined,
+                                                        size: 10.w,
+                                                      ),
                                               ),
+                                            );
+                                          },
+                                        ))
+                              : Expanded(
+                                  child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text("Issue raised on - ${outputDate}"),
+                                    SizedBox(
+                                      height: 5.w,
+                                    ),
+                                    widget.data.tag == null
+                                        ? Container()
+                                        : Text("Task Name- ${widget.data.tag}"),
+                                    widget.data.tag == null
+                                        ? Container()
+                                        : SizedBox(
+                                            height: 5.w,
+                                          ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("Team members- "),
+                                        InkWell(
+                                          onTap: () {
+                                            assignTask();
+                                            assignTaskBottomSheet();
+                                          },
+                                          child: Text(
+                                            "add member +",
+                                            style: Utils.regularTextStyle(
+                                                color: AppColor.dotColor,
+                                                fontSize: AppDimens.large_font),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 5.w,
+                                    ),
+                                    Expanded(
+                                      child: membersAssign.isEmpty
+                                          ? Container(
+                                              child: Center(
+                                                  child:
+                                                      Text("Not Data Found")),
                                             )
-                                          : Icon(
-                                              Icons.picture_as_pdf_outlined,
-                                              size: 10.w,
+                                          : ListView.builder(
+                                              itemCount: membersAssign.length,
+                                              shrinkWrap: true,
+                                              itemBuilder: (context, index) {
+                                                return Card(
+                                                  child: Padding(
+                                                    padding:
+                                                        EdgeInsets.all(3.w),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                              membersAssign[
+                                                                          index]
+                                                                      .teamDetails
+                                                                      ?.name ??
+                                                                  "-",
+                                                              style: Utils
+                                                                  .regularTextStyle(),
+                                                            ),
+                                                            Text(
+                                                              membersAssign[
+                                                                          index]
+                                                                      .teamDetails
+                                                                      ?.mobile ??
+                                                                  "",
+                                                              style: Utils
+                                                                  .regularTextStyle(),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        InkWell(
+                                                            onTap: () {
+                                                              ApiServices.postIssueRight(
+                                                                  widget
+                                                                      .data.id!,
+                                                                  widget.data
+                                                                      .projectId!,
+                                                                  membersAssign[
+                                                                          index]
+                                                                      .registerUserId!);
+                                                              setState(() {
+                                                                showMyDialog(
+                                                                    context,
+                                                                    "are you sure, remove this members?",
+                                                                    () {
+                                                                  membersAssign
+                                                                      .removeAt(
+                                                                          index);
+                                                                  Navigator.pop(
+                                                                      context);
+                                                                });
+                                                              });
+                                                            },
+                                                            child: Text(
+                                                              "remove",
+                                                              style: Utils
+                                                                  .regularTextStyle(),
+                                                            ))
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              },
                                             ),
                                     ),
-                                  );
-                                },
-                              ))
-                            : Expanded(
-                                child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text("Issue raised on - ${outputDate}"),
-                                  SizedBox(
-                                    height: 5.w,
-                                  ),
-                                  widget.data.tag == null
-                                      ? Container()
-                                      : Text("Task Name- ${widget.data.tag}"),
-                                  widget.data.tag == null
-                                      ? Container()
-                                      : SizedBox(
-                                          height: 5.w,
-                                        ),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text("Team members- "),
-                                      InkWell(
-                                        onTap: () {
-                                          assignTask();
-                                          assignTaskBottomSheet();
-                                        },
-                                        child: Text(
-                                          "add member +",
-                                          style: Utils.regularTextStyle(
-                                              color: AppColor.dotColor,
-                                              fontSize: AppDimens.large_font),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 5.w,
-                                  ),
-                                  Expanded(
-                                    child: membersAssign.isEmpty
-                                        ? Container(
-                                            child: Center(
-                                                child: Text("Not Data Found")),
-                                          )
-                                        : ListView.builder(
-                                            itemCount: membersAssign.length,
-                                            shrinkWrap: true,
-                                            itemBuilder: (context, index) {
-                                              return Card(
-                                                child: Padding(
-                                                  padding: EdgeInsets.all(3.w),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceBetween,
-                                                    children: [
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            membersAssign[index]
-                                                                    .teamDetails
-                                                                    ?.name ??
-                                                                "-",
-                                                            style: Utils
-                                                                .regularTextStyle(),
-                                                          ),
-                                                          Text(
-                                                            membersAssign[index]
-                                                                    .teamDetails
-                                                                    ?.mobile ??
-                                                                "",
-                                                            style: Utils
-                                                                .regularTextStyle(),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      InkWell(
-                                                          onTap: () {
-                                                            ApiServices.postIssueRight(
-                                                                widget.data.id!,
-                                                                widget.data
-                                                                    .projectId!,
-                                                                membersAssign[
-                                                                        index]
-                                                                    .registerUserId!);
-                                                            setState(() {
-                                                              membersAssign
-                                                                  .removeAt(
-                                                                      index);
-                                                            });
-                                                          },
-                                                          child: Text(
-                                                            "remove",
-                                                            style: Utils
-                                                                .regularTextStyle(),
-                                                          ))
-                                                    ],
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                          ),
-                                  ),
-                                ],
-                              )),
-                    selectIndex != 1
-                        ? Container()
-                        : Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Align(
-                                alignment: Alignment.bottomCenter,
-                                child: Container(
-                                  width: 100.w,
-                                  decoration: BoxDecoration(
-                                      border:
-                                          Border.all(color: AppColor.otpBox),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10))),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                        width: 67.w,
-                                        child: TextField(
-                                          controller: commentController,
-                                          focusNode: commentNode,
-                                          textInputAction: TextInputAction.done,
-                                          decoration: InputDecoration(
-                                            hintText: "Add comment",
-                                            hintStyle: Utils.regularTextStyle(
-                                                color: AppColor.hintText),
-                                            contentPadding: EdgeInsets.all(3.w),
-                                            enabledBorder: InputBorder.none,
-                                            focusedBorder: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                      InkWell(
-                                        onTap: () {
-                                          Utils.pickImageDialog(context, () {
-                                            getFilePicker();
-                                          }, () {
-                                            openCamera(ImageSource.camera);
-                                          });
-                                        },
-                                        child: Container(
-                                          height: 12.w,
-                                          child: Icon(
-                                            Icons.attach_file,
-                                            color: AppColor.black,
-                                            size: 30,
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 2.w,
-                                      ),
-                                      InkWell(
-                                          onTap: () {
-                                            if (commentController
-                                                .text.isEmpty) {
-                                              Toasts.showToast(
-                                                  "Please enter comment.");
-                                            } else {
-                                              commentNode.unfocus();
-                                              ApiServices.poseComment(
-                                                      widget.data.projectId!,
-                                                      widget.data.id!,
-                                                      widget.data.taskId!,
-                                                      null,
-                                                      commentController.text)
-                                                  .then((value) {
-                                                setState(() {
-                                                  commentController.clear();
-                                                  commentList.add(value);
-                                                });
-                                              });
-                                            }
-                                          },
-                                          child: Container(
-                                              height: 12.w,
-                                              child: Center(
-                                                  child: Text(
-                                                "Post",
-                                                style: Utils.regularTextStyle(
-                                                    fontSize: 4.5.w),
-                                              )))),
-                                      SizedBox(
-                                        width: 2.w,
-                                      ),
-                                    ],
-                                  ),
+                                  ],
                                 )),
-                          ),
-                  ],
+                      selectIndex != 1
+                          ? Container()
+                          : Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        border:
+                                            Border.all(color: AppColor.otpBox),
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10))),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: TextField(
+                                            controller: commentController,
+                                            focusNode: commentNode,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            decoration: InputDecoration(
+                                              hintText: "Add comment",
+                                              hintStyle: Utils.regularTextStyle(
+                                                  color: AppColor.hintText),
+                                              contentPadding:
+                                                  EdgeInsets.all(3.w),
+                                              enabledBorder: InputBorder.none,
+                                              focusedBorder: InputBorder.none,
+                                            ),
+                                          ),
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            Utils.pickImageDialog(context, () {
+                                              getFilePicker();
+                                            }, () {
+                                              openCamera(ImageSource.camera);
+                                            });
+                                          },
+                                          child: SizedBox(
+                                            height: 12.w,
+                                            child: Icon(
+                                              Icons.attach_file,
+                                              color: AppColor.black,
+                                              size: 30,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        InkWell(
+                                            onTap: () {
+                                              if (commentController
+                                                  .text.isEmpty) {
+                                                Toasts.showToast(
+                                                    "Please enter comment.");
+                                              } else {
+                                                commentNode.unfocus();
+                                                ApiServices.poseComment(
+                                                        widget.data.projectId!,
+                                                        widget.data.id!,
+                                                        widget.data.taskId!,
+                                                        null,
+                                                        commentController.text)
+                                                    .then((value) {
+                                                  setState(() {
+                                                    commentController.clear();
+                                                    commentList.add(value);
+                                                    Timer(
+                                                        Duration(
+                                                            milliseconds: 100),
+                                                        () async {
+                                                      _navigateToTop();
+                                                    });
+                                                  });
+                                                });
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding:
+                                                  EdgeInsets.only(right: 15.0),
+                                              child: SizedBox(
+                                                  height: 12.w,
+                                                  child: Center(
+                                                      child: Text(
+                                                    "Post",
+                                                    style:
+                                                        Utils.regularTextStyle(
+                                                            fontSize: 4.5.w),
+                                                  ))),
+                                            )),
+                                      ],
+                                    ),
+                                  )),
+                            ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -723,6 +756,10 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   void dispose() {
     attachment.clear();
     super.dispose();
+  }
+
+  void _navigateToTop() {
+    controller.jumpTo(controller.position.maxScrollExtent);
   }
 
   assignTask() {
@@ -768,6 +805,9 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
       setState(() {
         commentList.add(value);
         attachment.add(value);
+        Timer(Duration(milliseconds: 100), () async {
+          _navigateToTop();
+        });
         Navigator.pop(context);
       });
     });
@@ -807,6 +847,9 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         setState(() {
           commentList.add(value);
           attachment.add(value);
+          Timer(Duration(milliseconds: 100), () async {
+            _navigateToTop();
+          });
           Navigator.pop(context);
         });
       });
@@ -1299,7 +1342,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
     });
   }
 
-
   sendMobile(StateSetter state) {
     showModalBottomSheet(
         shape: RoundedRectangleBorder(
@@ -1309,117 +1351,129 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         context: context,
         builder: (BuildContext context) {
           return SingleChildScrollView(
-            child: StatefulBuilder(builder: (context,state){
-              return Container(
-                color: AppColor.white,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(5.w),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: StatefulBuilder(
+              builder: (context, state) {
+                return Container(
+                  color: AppColor.white,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(5.w),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Sead Invite",
+                              style: Utils.mediumTextStyle(
+                                  fontSize: AppDimens.medium_font),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: Icon(
+                                Icons.clear,
+                                size: 25,
+                                color: AppColor.gray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Divider(),
+                      Row(
                         children: [
-                          Text(
-                            "Sead Invite",
-                            style: Utils.mediumTextStyle(
-                                fontSize: AppDimens.medium_font),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                left: 3.w,
+                                bottom:
+                                    MediaQuery.of(context).viewInsets.bottom),
+                            child: Container(
+                              height: 14.5.w,
+                              decoration: BoxDecoration(
+                                color: AppColor.textFormFieldBg,
+                                border: Border.all(
+                                    color: AppColor.textFormFieldBg, width: 1),
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(10),
+                                ),
+                              ),
+                              child: CountryCodePicker(
+                                textStyle: Utils.regularTextStyle(
+                                    fontSize: AppDimens.large_font),
+                                onChanged: (value) {
+                                  print("contry Code ${value.dialCode}");
+                                  setState(() {
+                                    code = value.dialCode;
+                                    code1 =
+                                        value.dialCode?.replaceFirst("+", "");
+                                    print("code $code");
+                                  });
+                                },
+                                // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
+                                initialSelection: 'In',
+                                favorite: [code ?? '+91', 'In'],
+                                // optional. Shows only country name and flag
+                                showCountryOnly: true,
+                                // optional. Shows only country name and flag when popup is closed.
+                                showOnlyCountryWhenClosed: false,
+                                // optional. aligns the flag and the Text left
+                                alignLeft: false,
+                              ),
+                            ),
                           ),
-                          InkWell(
-                            onTap: () {
-                              Navigator.pop(context);
-                            },
-                            child: Icon(
-                              Icons.clear,
-                              size: 25,
-                              color: AppColor.gray,
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom),
+                              child: CommandTextFormField(
+                                  controller: numberController,
+                                  hint: "Enter your mobile number",
+                                  textInputAction: TextInputAction.next,
+                                  textInputType: TextInputType.number,
+                                  onChange: (value) {}),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    Divider(),
-                    Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
-                          child: Container(
-                            height: 14.5.w,
-                            decoration: BoxDecoration(
-                              color: AppColor.textFormFieldBg,
-                              border: Border.all(
-                                  color: AppColor.textFormFieldBg, width: 1),
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            child: CountryCodePicker(
-                              textStyle: Utils.regularTextStyle(
-                                  fontSize: AppDimens.large_font),
-                              onChanged: (value) {
-                                print("contry Code ${value.dialCode}");
-                                setState(() {
-                                  code = value.dialCode;
-                                  code1 = value.dialCode?.replaceFirst("+", "");
-                                  print("code $code");
+                      SizedBox(
+                        height: 3.h,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(5.w),
+                        child: commandButton(
+                            name: "Submit",
+                            bg: AppColor.mainColor,
+                            onPress: () {
+                              if (numberController.text.isEmpty) {
+                                Toasts.showToast("please enter mobile number");
+                              } else {
+                                ApiServices.postAddMember(
+                                        "",
+                                        code1!,
+                                        numberController.text,
+                                        widget.data.projectId)
+                                    .then((value) {
+                                  state(() {
+                                    code = "+91";
+                                    numberController.clear();
+                                    teamList.add(
+                                        CustomTeamList(teamDataList: value));
+                                    allTeamMember.add(
+                                        CustomTeamList(teamDataList: value));
+                                    Navigator.pop(context);
+                                  });
                                 });
-                              },
-                              // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
-                              initialSelection: 'In',
-                              favorite: [code ?? '+91', 'In'],
-                              // optional. Shows only country name and flag
-                              showCountryOnly: true,
-                              // optional. Shows only country name and flag when popup is closed.
-                              showOnlyCountryWhenClosed: false,
-                              // optional. aligns the flag and the Text left
-                              alignLeft: false,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-                            child: CommandTextFormField(
-                                controller: numberController,
-                                hint: "Enter your mobile number",
-                                textInputAction: TextInputAction.next,
-                                textInputType: TextInputType.number,
-                                onChange: (value) {}),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 3.h,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(5.w),
-                      child: commandButton(
-                          name: "Submit",
-                          bg: AppColor.mainColor,
-                          onPress: () {
-                            if (numberController.text.isEmpty) {
-                              Toasts.showToast("please enter mobile number");
-                            } else {
-                              ApiServices.postAddMember("", code1!,
-                                  numberController.text, widget.data.projectId)
-                                  .then((value) {
-                                state(() {
-                                  code = "+91";
-                                  numberController.clear();
-                                  teamList.add(CustomTeamList(teamDataList: value));
-                                  allTeamMember
-                                      .add(CustomTeamList(teamDataList: value));
-                                  Navigator.pop(context);
-                                });
-                              });
-                            }
-                          },
-                          strColor: AppColor.white),
-                    ),
-                  ],
-                ),
-              );
-            },),
+                              }
+                            },
+                            strColor: AppColor.white),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           );
         });
   }

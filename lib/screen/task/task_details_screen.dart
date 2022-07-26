@@ -20,7 +20,7 @@ import '../../utils/app_dimens.dart';
 import '../../utils/app_string.dart';
 import '../../utils/shared_preferences/preferences_key.dart';
 import '../../utils/shared_preferences/preferences_manager.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/comman_widget.dart';
 import '../../widget/text_form_field.dart';
 
@@ -54,6 +54,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   DateTime selectedDate = DateTime.now();
 
   String? unitListValue;
+
   List<String> unitList = [];
   int selectUnit = 0;
   List<CustomTeamList> allTeamMember = [];
@@ -112,8 +113,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   initValue() {
-    startDateController.text = widget.startDate;
-    endDateController.text = widget.endDate;
+    startDateController.text = Utils.showData(widget.startDate);
+    endDateController.text = Utils.showData(widget.endDate);
     totalController.text =
         widget.totalWork == "null" ? '' : widget.totalWork.toString();
     if (widget.unitValue != 0) {
@@ -177,410 +178,435 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: AppColor.white,
-        body: Column(
-          children: [
-            appBar("Task Details", () {
-              Navigator.pop(context, assignTeamMember.length);
-            }),
-            Expanded(
-              child: ListView(
-                shrinkWrap: true,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(3.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 30.w,
-                        ),
-                        Text(
-                          "Task Details- ${widget.taskDetailsList.title}",
-                          overflow: TextOverflow.clip,
-                          style: Utils.regularTextStyle(
-                              fontSize: AppDimens.large_font,
-                              color: AppColor.textColor3),
-                        ),
-                        SizedBox(
-                          height: 5.w,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: CommandTextFormField(
-                                onTab: () {
-                                  setState(() async {
-                                    startDateController.text =
-                                        await selectDate(context);
-                                  });
-                                },
-                                title: AppString.strStartDate,
-                                controller: startDateController,
-                                focusNode: startDateNode,
-                                readOnly: true,
-                                hint: AppString.strStartDate,
-                                textInputAction: TextInputAction.next,
-                                textInputType: TextInputType.text,
-                              ),
-                            ),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () {},
+        bottomNavigationBar: InkWell(
+            onTap: () {
+              if (startDateController.text.isEmpty) {
+                setState(() {
+                  selectStartDate = true;
+                });
+              } else {
+                setState(() {
+                  selectStartDate = false;
+                });
+              }
+              if (endDateController.text.isEmpty) {
+                setState(() {
+                  selectEndDate = true;
+                });
+              } else {
+                setState(() {
+                  selectEndDate = false;
+                });
+              }
+              if (totalController.text.isEmpty) {
+                setState(() {
+                  selectTotal = true;
+                });
+              } else {
+                setState(() {
+                  selectTotal = false;
+                });
+              }
+              if (selectUnit == 0) {
+                setState(() {
+                  isUnit = true;
+                });
+              } else {
+                setState(() {
+                  isUnit = false;
+                });
+              }
+              if (startDateController.text.isEmpty &&
+                  endDateController.text.isEmpty &&
+                  totalController.text.isEmpty &&
+                  selectUnit == 0) {
+              } else {
+                ApiServices.updateTask(
+                        widget.id,
+                        Utils.passData(startDateController.text),
+                        Utils.passData(endDateController.text),
+                        int.parse(totalController.text),
+                        selectUnit)
+                    .then((value) {
+                  Navigator.pop(context, value);
+                  // getTeamList();
+                });
+              }
+            },
+            child: Image.asset(ImageAsset.btnSave1)),
+        body: WillPopScope(
+          onWillPop: () {
+            Navigator.pop(context, assignTeamMember.length);
+            return Future(() => false);
+          },
+          child: Column(
+            children: [
+              appBar("Task Details", () {
+                Navigator.pop(context, assignTeamMember.length);
+              }),
+              Expanded(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(3.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: 30.w,
+                          ),
+                          Text(
+                            "Task Details- ${widget.taskDetailsList.title}",
+                            overflow: TextOverflow.clip,
+                            style: Utils.regularTextStyle(
+                                fontSize: AppDimens.large_font,
+                                color: AppColor.textColor3),
+                          ),
+                          SizedBox(
+                            height: 5.w,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
                                 child: CommandTextFormField(
-                                  title: AppString.strEndDate,
-                                  controller: endDateController,
-                                  focusNode: endDateNode,
-                                  readOnly: true,
                                   onTab: () {
-                                    setState(() async {
-                                      endDateController.text =
-                                          await selectDate(context);
+                                    selectDate(context).then((value) {
+                                      startDateController.text =
+                                          Utils.showData(value);
                                     });
+                                    // setState(() async {
+                                    //   startDateController.text =
+                                    //       await selectDate(context);
+                                    // });
                                   },
-                                  hint: AppString.strEndDate,
+                                  title: AppString.strStartDate,
+                                  controller: startDateController,
+                                  focusNode: startDateNode,
+                                  readOnly: true,
+                                  hint: AppString.strStartDate,
                                   textInputAction: TextInputAction.next,
                                   textInputType: TextInputType.text,
-                                  onChange: (value) {},
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            selectStartDate
-                                ? Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 5.5.w,
-                                      ),
-                                      child: Text(
-                                        "Please select start date",
-                                        style: TextStyle(
-                                            color: AppColor.red1,
-                                            fontSize: 12.0),
-                                      ),
-                                    ),
-                                  )
-                                : Expanded(child: Container()),
-                            selectEndDate
-                                ? Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 5.5.w,
-                                      ),
-                                      child: Text(
-                                        "Please select end date",
-                                        style: TextStyle(
-                                            color: AppColor.red1,
-                                            fontSize: 12.0),
-                                      ),
-                                    ),
-                                  )
-                                : Expanded(child: Container())
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: CommandTextFormField(
-                                onTab: () {},
-                                title: AppString.strEnterTotalWork,
-                                controller: totalController,
-                                focusNode: totalNode,
-                                readOnly: readOnly,
-                                hint: AppString.strEnterTotalWork,
-                                textInputAction: TextInputAction.next,
-                                textInputType: TextInputType.number,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 1,
-                              child: Container(
-                                height: 15.w,
-                                decoration: BoxDecoration(
-                                    color: AppColor.textFormFieldBg,
-                                    border: Border.all(
-                                        color: AppColor.textFormFieldBg,
-                                        width: 1),
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(10))),
-                                child: Center(
-                                  child: DropdownButton<String>(
-                                    isExpanded: false,
-                                    underline: Container(
-                                      color: AppColor.textFormFieldBg,
-                                      height: 1,
-                                      width: double.infinity,
-                                    ),
-                                    // value: valueTarget,
-                                    hint: Text(
-                                      'Unit',
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.hintText,
-                                          fontSize: 4.w),
-                                    ),
-                                    value: unitListValue,
-                                    iconEnabledColor: AppColor.textFormFieldBg,
-                                    dropdownColor: AppColor.textFormFieldBg,
-                                    icon: const Icon(
-                                      Icons.arrow_drop_down,
-                                      size: 30,
-                                      color: AppColor.textColor,
-                                    ),
-                                    elevation: 0,
-                                    style: Utils.regularTextStyle(
-                                        color: AppColor.textColor,
-                                        fontSize: AppDimens.medium_font),
-                                    onChanged: (String? newValue) {
-                                      setState(() {
-                                        readOnly = false;
-                                        unitListValue = newValue!;
-                                        selectUnit =
-                                            1 + unitList.indexOf(newValue);
-                                        if (unitModel[(unitList
-                                                    .indexOf(newValue))]
-                                                .measurementType ==
-                                            1) {
-                                          readOnly = true;
-                                          totalController.text = "100";
-                                        }
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () {},
+                                  child: CommandTextFormField(
+                                    title: AppString.strEndDate,
+                                    controller: endDateController,
+                                    focusNode: endDateNode,
+                                    readOnly: true,
+                                    onTab: () {
+                                      selectDate(context).then((value) {
+                                        endDateController.text =
+                                            Utils.showData(value);
                                       });
+                                      /* setState(() async {
+                                        endDateController.text =
+                                            await selectDate(context);
+                                      });*/
                                     },
-                                    items: unitList
-                                        .map<DropdownMenuItem<String>>(
-                                            (String value) {
-                                      return DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(value),
-                                      );
-                                    }).toList(),
+                                    hint: AppString.strEndDate,
+                                    textInputAction: TextInputAction.next,
+                                    textInputType: TextInputType.text,
+                                    onChange: (value) {},
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            selectTotal
-                                ? Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 5.5.w,
-                                      ),
-                                      child: Text(
-                                        "Please enter total work",
-                                        style: TextStyle(
-                                            color: AppColor.red1,
-                                            fontSize: 12.0),
-                                      ),
-                                    ),
-                                  )
-                                : Expanded(child: Container()),
-                            isUnit
-                                ? Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        left: 5.5.w,
-                                      ),
-                                      child: Text(
-                                        "Please select unit",
-                                        style: TextStyle(
-                                            color: AppColor.red1,
-                                            fontSize: 12.0),
-                                      ),
-                                    ),
-                                  )
-                                : Expanded(child: Container())
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10.w,
-                        ),
-                        InkWell(
-                          onTap: () {
-                            assignTask();
-                            assignTaskBottomSheet();
-                          },
-                          child: Container(
-                            height: 10.w,
-                            width: double.infinity,
-                            child: Text(
-                              "+ Assign team member",
-                              style: Utils.regularTextStyle(
-                                  fontSize: AppDimens.large_font,
-                                  color: AppColor.textColor3),
-                            ),
+                            ],
                           ),
-                        ),
-                        Container(
-                          height: 60.w,
-                          width: double.infinity,
-                          child: ListView.builder(
-                              itemCount: assignTeamMember.length,
-                              shrinkWrap: true,
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            height: 10.w,
-                                            width: 10.w,
-                                            decoration: BoxDecoration(
-                                                shape: BoxShape.circle,
-                                                color: AppColor.gray1),
-                                            child:
-                                                assignTeamMember[index].image ==
-                                                        null
-                                                    ? Icon(
-                                                        Icons.person,
-                                                        size: 25,
-                                                        color: AppColor.gray,
-                                                      )
-                                                    : CircleAvatar(
-                                                        radius: 200.0,
-                                                        backgroundImage:
-                                                            NetworkImage(AppString
-                                                                    .basePath +
-                                                                assignTeamMember[
-                                                                        index]
-                                                                    .image),
-                                                      ),
-                                          ),
-                                          SizedBox(
-                                            width: 5.w,
-                                          ),
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                assignTeamMember[index].name ??
-                                                    "-",
-                                                overflow: TextOverflow.clip,
-                                                style: Utils.regularTextStyle(
-                                                    color: AppColor.black),
-                                              ),
-                                              SizedBox(
-                                                height: 1.w,
-                                              ),
-                                              Text(
-                                                assignTeamMember[index]
-                                                        .mobile ??
-                                                    "-",
-                                                overflow: TextOverflow.clip,
-                                                style: Utils.regularTextStyle(
-                                                    color: AppColor.gray),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              selectStartDate
+                                  ? Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 5.5.w,
+                                        ),
+                                        child: Text(
+                                          "Please select start date",
+                                          style: TextStyle(
+                                              color: AppColor.red1,
+                                              fontSize: 12.0),
+                                        ),
                                       ),
-                                      InkWell(
-                                        onTap: () {
+                                    )
+                                  : Expanded(child: Container()),
+                              selectEndDate
+                                  ? Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 5.5.w,
+                                        ),
+                                        child: Text(
+                                          "Please select end date",
+                                          style: TextStyle(
+                                              color: AppColor.red1,
+                                              fontSize: 12.0),
+                                        ),
+                                      ),
+                                    )
+                                  : Expanded(child: Container())
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: CommandTextFormField(
+                                  onTab: () {},
+                                  title: AppString.strEnterTotalWork,
+                                  controller: totalController,
+                                  focusNode: totalNode,
+                                  readOnly: readOnly,
+                                  hint: AppString.strEnterTotalWork,
+                                  textInputAction: TextInputAction.next,
+                                  textInputType: TextInputType.number,
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  height: 15.w,
+                                  decoration: BoxDecoration(
+                                      color: AppColor.textFormFieldBg,
+                                      border: Border.all(
+                                          color: AppColor.textFormFieldBg,
+                                          width: 1),
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10))),
+                                  child: Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(3.0),
+                                      child: DropdownButton<String>(
+                                        isExpanded: false,
+                                        underline: Container(
+                                          color: AppColor.textFormFieldBg,
+                                          height: 1,
+                                          width: double.infinity,
+                                        ),
+                                        // value: valueTarget,
+                                        hint: Text(
+                                          'Unit',
+                                          style: Utils.regularTextStyle(
+                                              color: AppColor.hintText,
+                                              fontSize: AppDimens.medium_font),
+                                        ),
+                                        value: unitListValue,
+                                        iconEnabledColor:
+                                            AppColor.textFormFieldBg,
+                                        dropdownColor: AppColor.textFormFieldBg,
+                                        icon: const Icon(
+                                          Icons.arrow_drop_down,
+                                          size: 30,
+                                          color: AppColor.textColor,
+                                        ),
+                                        elevation: 0,
+                                        style: Utils.regularTextStyle(
+                                            color: AppColor.textColor,
+                                            fontSize: AppDimens.medium_font),
+                                        onChanged: (String? newValue) {
                                           setState(() {
-                                            ApiServices.postTaskRight(
-                                                widget.id,
-                                                widget.projectID,
-                                                assignTeamMember[index].id ??
-                                                    0);
-                                            assignTeamMember.removeAt(index);
+                                            readOnly = false;
+                                            unitListValue = newValue!;
+                                            selectUnit =
+                                                1 + unitList.indexOf(newValue);
+                                            if (unitModel[(unitList
+                                                        .indexOf(newValue))]
+                                                    .measurementType ==
+                                                1) {
+                                              readOnly = true;
+                                              totalController.text = "100";
+                                            }
                                           });
                                         },
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                              color: AppColor.red,
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(5))),
-                                          child: Padding(
-                                            padding: EdgeInsets.all(2.w),
-                                            child: Text(
-                                              "Remove",
-                                              style: Utils.regularTextStyle(
-                                                  color: AppColor.white),
+                                        items: unitList
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              selectTotal
+                                  ? Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 5.5.w,
+                                        ),
+                                        child: Text(
+                                          "Please enter total work",
+                                          style: TextStyle(
+                                              color: AppColor.red1,
+                                              fontSize: 12.0),
+                                        ),
+                                      ),
+                                    )
+                                  : Expanded(child: Container()),
+                              isUnit
+                                  ? Expanded(
+                                      child: Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 5.5.w,
+                                        ),
+                                        child: Text(
+                                          "Please select unit",
+                                          style: TextStyle(
+                                              color: AppColor.red1,
+                                              fontSize: 12.0),
+                                        ),
+                                      ),
+                                    )
+                                  : Expanded(child: Container())
+                            ],
+                          ),
+                          SizedBox(
+                            height: 10.w,
+                          ),
+                          InkWell(
+                            onTap: () {
+                              assignTask();
+                              assignTaskBottomSheet();
+                            },
+                            child: Container(
+                              height: 10.w,
+                              width: double.infinity,
+                              child: Text(
+                                "+ Assign team member",
+                                style: Utils.regularTextStyle(
+                                    fontSize: AppDimens.large_font,
+                                    color: AppColor.textColor3),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 60.w,
+                            width: double.infinity,
+                            child: ListView.builder(
+                                itemCount: assignTeamMember.length,
+                                shrinkWrap: true,
+                                itemBuilder: (context, index) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              height: 10.w,
+                                              width: 10.w,
+                                              decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: AppColor.gray1),
+                                              child: assignTeamMember[index]
+                                                          .image ==
+                                                      null
+                                                  ? Icon(
+                                                      Icons.person,
+                                                      size: 25,
+                                                      color: AppColor.gray,
+                                                    )
+                                                  : CircleAvatar(
+                                                      radius: 200.0,
+                                                      backgroundImage:
+                                                          NetworkImage(AppString
+                                                                  .basePath +
+                                                              assignTeamMember[
+                                                                      index]
+                                                                  .image),
+                                                    ),
+                                            ),
+                                            SizedBox(
+                                              width: 5.w,
+                                            ),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  assignTeamMember[index]
+                                                          .name ??
+                                                      "-",
+                                                  overflow: TextOverflow.clip,
+                                                  style: Utils.regularTextStyle(
+                                                      color: AppColor.black),
+                                                ),
+                                                SizedBox(
+                                                  height: 1.w,
+                                                ),
+                                                Text(
+                                                  assignTeamMember[index]
+                                                          .mobile ??
+                                                      "-",
+                                                  overflow: TextOverflow.clip,
+                                                  style: Utils.regularTextStyle(
+                                                      color: AppColor.gray),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        InkWell(
+                                          onTap: () {
+                                            setState(() {
+                                              ApiServices.postTaskRight(
+                                                  widget.id,
+                                                  widget.projectID,
+                                                  assignTeamMember[index].id ??
+                                                      0);
+                                              showMyDialog(context,
+                                                  "are you sure, remove this members?",
+                                                  () {
+                                                assignTeamMember
+                                                    .removeAt(index);
+                                                Navigator.pop(context);
+                                              });
+                                            });
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                                color: AppColor.red,
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(5))),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(2.w),
+                                              child: Text(
+                                                "Remove",
+                                                style: Utils.regularTextStyle(
+                                                    color: AppColor.white),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              }),
-                        ),
-                        InkWell(
-                            onTap: () {
-                              if (startDateController.text.isEmpty) {
-                                setState(() {
-                                  selectStartDate = true;
-                                });
-                              } else {
-                                setState(() {
-                                  selectStartDate = false;
-                                });
-                              }
-                              if (endDateController.text.isEmpty) {
-                                setState(() {
-                                  selectEndDate = true;
-                                });
-                              } else {
-                                setState(() {
-                                  selectEndDate = false;
-                                });
-                              }
-                              if (totalController.text.isEmpty) {
-                                setState(() {
-                                  selectTotal = true;
-                                });
-                              } else {
-                                setState(() {
-                                  selectTotal = false;
-                                });
-                              }
-                              if (unitListValue == "") {
-                                setState(() {
-                                  isUnit = true;
-                                });
-                              } else {
-                                setState(() {
-                                  isUnit = false;
-                                });
-                              }
-                              if (startDateController.text.isEmpty &&
-                                  endDateController.text.isEmpty &&
-                                  totalController.text.isEmpty &&
-                                  selectUnit == 0) {
-                              } else {
-                                ApiServices.updateTask(
-                                        widget.id,
-                                        startDateController.text,
-                                        endDateController.text,
-                                        int.parse(totalController.text),
-                                        selectUnit)
-                                    .then((value) {
-                                  Navigator.pop(context, value);
-                                  // getTeamList();
-                                });
-                              }
-                            },
-                            child: Image.asset(ImageAsset.btnSave1))
-                      ],
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1129,7 +1155,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
+                        padding: EdgeInsets.only(
+                            left: 3.w,
+                            bottom: MediaQuery.of(context).viewInsets.bottom),
                         child: Container(
                           height: 14.5.w,
                           decoration: BoxDecoration(
@@ -1165,7 +1193,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                       ),
                       Expanded(
                         child: Padding(
-                          padding: EdgeInsets.only(left: 3.w,bottom: MediaQuery.of(context).viewInsets.bottom),
+                          padding: EdgeInsets.only(
+                              left: 3.w,
+                              bottom: MediaQuery.of(context).viewInsets.bottom),
                           child: CommandTextFormField(
                               controller: numberController,
                               hint: "Enter your mobile number",
@@ -1195,7 +1225,8 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                 code = "+91";
                                 numberController.clear();
                                 print("value re----");
-                                teamList.add(CustomTeamList(teamDataList: value));
+                                teamList
+                                    .add(CustomTeamList(teamDataList: value));
                                 Navigator.pop(context);
                               });
                             });

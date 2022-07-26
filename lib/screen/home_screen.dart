@@ -5,7 +5,7 @@ import 'package:constructin/screen/profile_screen.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
 import 'package:constructin/utils/app_string.dart';
-import 'package:constructin/utils/unil.dart';
+import 'package:constructin/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sizer/sizer.dart';

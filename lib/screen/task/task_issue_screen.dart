@@ -24,7 +24,7 @@ import '../../utils/app_string.dart';
 import '../../utils/shared_preferences/preferences_key.dart';
 import '../../utils/shared_preferences/preferences_manager.dart';
 import '../../utils/toasts.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/comman_widget.dart';
 import '../../widget/search_text_form_field.dart';
 import '../../widget/text_form_field.dart';
@@ -68,7 +68,7 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
   List<CustomTeamList> allTeamMember = [];
   List<TeamDetails> assignTeamMember = [];
 
-  int? currentIndexTeam;
+  // int? currentIndexTeam;
   int? currentIndex;
   List<Contact> _contacts = [];
   List<CustomContact> _uiCustomContacts = [];
@@ -81,7 +81,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
   @override
   void initState() {
     // TODO: implement initState
-
     ApiServices.getIssueCategoryList().then((value) {
       for (int i = 0; i < value.data!.length; i++) {
         setState(() {
@@ -89,7 +88,9 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
         });
       }
     });
-    getTeamList();
+    if (widget.projectID != null) {
+      getTeamList();
+    }
     isPermissionGrad =
         PreferencesManager.getBool(PreferencesKey.isContact, false);
     if (isPermissionGrad) {
@@ -177,6 +178,60 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: AppColor.white,
+        bottomNavigationBar: InkWell(
+            onTap: () async {
+              List<int> registerUserIdes = [];
+              for (int i = 0; i < assignTeamMember.length; i++) {
+                registerUserIdes.add(assignTeamMember[i].id!);
+              }
+              if (selectCategory == '') {
+                setState(() {
+                  isSelect = true;
+                });
+              } else {
+                setState(() {
+                  isSelect = false;
+                });
+                if (_formKey.currentState!.validate()) {
+                  setState(() {
+                    _isLoading = true;
+                  });
+                  if (widget.edit == 0) {
+                    await ApiServices.postIssue(
+                            widget.projectID.toString(),
+                            widget.taskId.toString(),
+                            selectIssueCategory.toString(),
+                            descriptionController.text,
+                            widget.tag == 1 ? tagController.text : "",
+                            list,
+                            registerUserIdes.join(","))
+                        .then((value) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      Navigator.pop(context, value);
+                    });
+                  } else {
+                    await ApiServices.editIssue(
+                            widget.id!,
+                            selectIssueCategory.toString(),
+                            descriptionController.text,
+                            widget.tag == 1 ? tagController.text : "")
+                        .then((value) {
+                      setState(() {
+                        _isLoading = false;
+                      });
+                      Navigator.pop(context, value);
+                    });
+                  }
+                }
+              }
+            },
+            child: Container(
+                height: 20.w,
+                child: Image.asset(
+                  ImageAsset.btnIssueSave,
+                ))),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -191,100 +246,108 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
               padding: EdgeInsets.all(3.w),
               child: Stack(
                 children: [
-                  ListView(
-                    shrinkWrap: true,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // widget.tag == 1
-                          //     ? Container()
-                          //     : Padding(
-                          //         padding: EdgeInsets.all(3.w),
-                          //         child: Text(
-                          //           "Task- ",
-                          //           style: Utils.regularTextStyle(
-                          //               fontSize: AppDimens.large_font,
-                          //               color: AppColor.dotColor),
-                          //         ),
-                          //       ),
-                          widget.edit == 0
-                              ? Padding(
-                                  padding: EdgeInsets.all(3.w),
-                                  child: Text(
-                                    "New issue-",
-                                    style: Utils.regularTextStyle(
-                                        fontSize: AppDimens.large_font,
-                                        color: AppColor.dotColor),
-                                  ),
-                                )
-                              : Container(),
-                          Padding(
-                            padding: EdgeInsets.all(3.w),
-                            child: InkWell(
-                              onTap: () {
-                                searchController.text = '';
-                                categoryListBottomSet();
-                              },
-                              child: Container(
-                                  height: 15.w,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
+                      // widget.tag == 1
+                      //     ? Container()
+                      //     : Padding(
+                      //         padding: EdgeInsets.all(3.w),
+                      //         child: Text(
+                      //           "Task- ",
+                      //           style: Utils.regularTextStyle(
+                      //               fontSize: AppDimens.large_font,
+                      //               color: AppColor.dotColor),
+                      //         ),
+                      //       ),
+                      widget.edit == 0
+                          ? Padding(
+                              padding: EdgeInsets.all(3.w),
+                              child: Text(
+                                "New issue-",
+                                style: Utils.regularTextStyle(
+                                    fontSize: AppDimens.large_font,
+                                    color: AppColor.dotColor),
+                              ),
+                            )
+                          : Container(),
+                      Padding(
+                        padding: EdgeInsets.all(3.w),
+                        child: InkWell(
+                          onTap: () {
+                            searchController.text = '';
+                            categoryListBottomSet();
+                          },
+                          child: Container(
+                              height: 15.w,
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                  color: AppColor.textFormFieldBg,
+                                  border: Border.all(
                                       color: AppColor.textFormFieldBg,
-                                      border: Border.all(
-                                          color: AppColor.textFormFieldBg,
-                                          width: 1),
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10))),
-                                  child: Row(
-                                    children: [
-                                      Padding(
-                                        padding: EdgeInsets.only(left: 3.w),
-                                        child: Text(
-                                          selectCategory == ''
-                                              ? "Select/Add Tack category"
-                                              : selectCategory,
-                                          style: Utils.regularTextStyle(
-                                              color: selectCategory == ''
-                                                  ? AppColor.hintText
-                                                  : AppColor.black,
-                                              fontSize: 4.w),
-                                        ),
-                                      ),
-                                    ],
-                                  )),
-                            ),
-                          ),
-                          isSelect
-                              ? Padding(
-                                  padding: EdgeInsets.only(left: 5.w),
-                                  child: Text(
-                                    "Please select category",
-                                    style: TextStyle(
-                                        color: AppColor.red1, fontSize: 12.0),
+                                      width: 1),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(10))),
+                              child: Row(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.only(left: 3.w),
+                                    child: Text(
+                                      selectCategory == ''
+                                          ? "Select/Add Tack category"
+                                          : selectCategory,
+                                      style: Utils.regularTextStyle(
+                                          color: selectCategory == ''
+                                              ? AppColor.hintText
+                                              : AppColor.black,
+                                          fontSize: 4.w),
+                                    ),
                                   ),
-                                )
-                              : Container(),
-                          Form(
-                            key: _formKey,
-                            child: CommandTextFormField(
-                              title: AppString.strEnterIssueDescription,
-                              controller: descriptionController,
-                              hint: AppString.strEnterIssueDescription,
+                                ],
+                              )),
+                        ),
+                      ),
+                      isSelect
+                          ? Padding(
+                              padding: EdgeInsets.only(left: 5.w),
+                              child: Text(
+                                "Please select category",
+                                style: TextStyle(
+                                    color: AppColor.red1, fontSize: 12.0),
+                              ),
+                            )
+                          : Container(),
+                      Form(
+                        key: _formKey,
+                        child: CommandTextFormField(
+                          title: AppString.strEnterIssueDescription,
+                          controller: descriptionController,
+                          hint: AppString.strEnterIssueDescription,
+                          textInputAction: TextInputAction.done,
+                          textInputType: TextInputType.multiline,
+                          maxLines: null,
+                          validator: (value) {
+                            if (value == "") {
+                              return "Please enter Issuer Description";
+                            }
+                            return null;
+                          },
+                          onChange: (value) {},
+                        ),
+                      ),
+                      widget.tag == 1
+                          ? CommandTextFormField(
+                              title: AppString.strAddTaskName,
+                              controller: tagController,
+                              hint: AppString.strAddTaskName,
                               textInputAction: TextInputAction.done,
-                              textInputType: TextInputType.multiline,
+                              textInputType: TextInputType.text,
                               maxLines: null,
-                              validator: (value) {
-                                if (value == "") {
-                                  return "Please enter Issuer Description";
-                                }
-                                return null;
-                              },
                               onChange: (value) {},
-                            ),
-                          ),
-                          widget.tag == 1
-                              ? CommandTextFormField(
+                            )
+                          : widget.issueData?.tag == null
+                              ? Container()
+                              : CommandTextFormField(
                                   title: AppString.strAddTaskName,
                                   controller: tagController,
                                   hint: AppString.strAddTaskName,
@@ -292,221 +355,156 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                   textInputType: TextInputType.text,
                                   maxLines: null,
                                   onChange: (value) {},
-                                )
-                              : widget.issueData?.tag == null
-                                  ? Container()
-                                  : CommandTextFormField(
-                                      title: AppString.strAddTaskName,
-                                      controller: tagController,
-                                      hint: AppString.strAddTaskName,
-                                      textInputAction: TextInputAction.done,
-                                      textInputType: TextInputType.text,
-                                      maxLines: null,
-                                      onChange: (value) {},
-                                    ),
-                          widget.edit == 0
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SizedBox(
-                                      height: 3.w,
-                                    ),
-                                    widgetImageList("+ Add Photos/attachment"),
-                                    InkWell(
-                                      onTap: () {
-                                        assignTask();
-                                        teamMemberBottomSheet();
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsets.only(
-                                            left: 3.w, top: 3.w),
-                                        child: Text(
-                                          "+ Add team member",
-                                          style: Utils.regularTextStyle(
-                                              fontSize: AppDimens.large_font,
-                                              color: AppColor.dotColor),
-                                        ),
+                                ),
+                      widget.edit == 0
+                          ? Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    height: 3.w,
+                                  ),
+                                  widgetImageList("+ Add Photos/attachment"),
+                                  InkWell(
+                                    onTap: () {
+                                      assignTask();
+                                      teamMemberBottomSheet();
+                                    },
+                                    child: Padding(
+                                      padding:
+                                          EdgeInsets.only(left: 3.w, top: 3.w),
+                                      child: Text(
+                                        "+ Add team member",
+                                        style: Utils.regularTextStyle(
+                                            fontSize: AppDimens.large_font,
+                                            color: AppColor.dotColor),
                                       ),
                                     ),
-                                    Container(
-                                      height: 50.w,
-                                      width: double.infinity,
-                                      child: ListView.builder(
-                                          itemCount: assignTeamMember.length,
-                                          shrinkWrap: true,
-                                          reverse: false,
-                                          itemBuilder: (context, index) {
-                                            return Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        height: 10.w,
-                                                        width: 10.w,
-                                                        decoration:
-                                                            BoxDecoration(
-                                                                shape: BoxShape
-                                                                    .circle,
-                                                                color: AppColor
-                                                                    .gray1),
-                                                        child: assignTeamMember[
-                                                                        index]
-                                                                    .image ==
-                                                                null
-                                                            ? Icon(
-                                                                Icons.person,
-                                                                size: 25,
-                                                                color: AppColor
-                                                                    .gray,
-                                                              )
-                                                            : CircleAvatar(
-                                                                radius: 200.0,
-                                                                backgroundImage: NetworkImage(AppString
-                                                                        .basePath +
-                                                                    assignTeamMember[
-                                                                            index]
-                                                                        .image),
-                                                              ),
-                                                      ),
-                                                      SizedBox(
-                                                        width: 5.w,
-                                                      ),
-                                                      Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            assignTeamMember[
-                                                                        index]
-                                                                    .name ??
-                                                                "-",
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .clip,
-                                                            style: Utils
-                                                                .regularTextStyle(
-                                                                    color: AppColor
-                                                                        .black),
-                                                          ),
-                                                          SizedBox(
-                                                            height: 1.w,
-                                                          ),
-                                                          Text(
-                                                            assignTeamMember[
-                                                                        index]
-                                                                    .mobile ??
-                                                                "-",
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .clip,
-                                                            style: Utils
-                                                                .regularTextStyle(
-                                                                    color: AppColor
-                                                                        .gray),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  InkWell(
-                                                    onTap: () {
-                                                      setState(() {
-                                                        assignTeamMember
-                                                            .removeAt(index);
-                                                      });
-                                                    },
-                                                    child: Container(
+                                  ),
+                                  Expanded(
+                                    // height: 50.w,
+                                    // width: double.infinity,
+                                    child: ListView.builder(
+                                        itemCount: assignTeamMember.length,
+                                        shrinkWrap: true,
+                                        reverse: false,
+                                        itemBuilder: (context, index) {
+                                          return Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Container(
+                                                      height: 10.w,
+                                                      width: 10.w,
                                                       decoration: BoxDecoration(
-                                                          color: AppColor.red,
-                                                          borderRadius:
-                                                              BorderRadius.all(
-                                                                  Radius
-                                                                      .circular(
-                                                                          5))),
-                                                      child: Padding(
-                                                        padding:
-                                                            EdgeInsets.all(2.w),
-                                                        child: Text(
-                                                          "Remove",
+                                                          shape:
+                                                              BoxShape.circle,
+                                                          color:
+                                                              AppColor.gray1),
+                                                      child: assignTeamMember[
+                                                                      index]
+                                                                  .image ==
+                                                              null
+                                                          ? Icon(
+                                                              Icons.person,
+                                                              size: 25,
+                                                              color:
+                                                                  AppColor.gray,
+                                                            )
+                                                          : CircleAvatar(
+                                                              radius: 200.0,
+                                                              backgroundImage: NetworkImage(AppString
+                                                                      .basePath +
+                                                                  assignTeamMember[
+                                                                          index]
+                                                                      .image),
+                                                            ),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5.w,
+                                                    ),
+                                                    Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          assignTeamMember[
+                                                                      index]
+                                                                  .name ??
+                                                              "-",
+                                                          overflow:
+                                                              TextOverflow.clip,
                                                           style: Utils
                                                               .regularTextStyle(
                                                                   color: AppColor
-                                                                      .white),
+                                                                      .black),
                                                         ),
+                                                        SizedBox(
+                                                          height: 1.w,
+                                                        ),
+                                                        Text(
+                                                          assignTeamMember[
+                                                                      index]
+                                                                  .mobile ??
+                                                              "-",
+                                                          overflow:
+                                                              TextOverflow.clip,
+                                                          style: Utils
+                                                              .regularTextStyle(
+                                                                  color: AppColor
+                                                                      .gray),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                InkWell(
+                                                  onTap: () {
+                                                    showMyDialog(context,
+                                                        "are you sure, remove this members?",
+                                                        () {
+                                                      setState(() {
+                                                        assignTeamMember
+                                                            .removeAt(index);
+                                                        Navigator.pop(context);
+                                                      });
+                                                    });
+                                                  },
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color: AppColor.red,
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(
+                                                                    5))),
+                                                    child: Padding(
+                                                      padding:
+                                                          EdgeInsets.all(2.w),
+                                                      child: Text(
+                                                        "Remove",
+                                                        style: Utils
+                                                            .regularTextStyle(
+                                                                color: AppColor
+                                                                    .white),
                                                       ),
                                                     ),
-                                                  )
-                                                ],
-                                              ),
-                                            );
-                                          }),
-                                    )
-                                  ],
-                                )
-                              : Container(),
-                        ],
-                      ),
-                      InkWell(
-                          onTap: () async {
-                            List<int> registerUserIdes = [];
-                            for (int i = 0; i < assignTeamMember.length; i++) {
-                              registerUserIdes.add(assignTeamMember[i].id!);
-                            }
-                            if (selectCategory == '') {
-                              setState(() {
-                                isSelect = true;
-                              });
-                            } else {
-                              setState(() {
-                                isSelect = false;
-                              });
-                              if (_formKey.currentState!.validate()) {
-                                setState(() {
-                                  _isLoading = true;
-                                });
-                                if (widget.edit == 0) {
-                                  await ApiServices.postIssue(
-                                          widget.projectID.toString(),
-                                          widget.taskId.toString(),
-                                          selectIssueCategory.toString(),
-                                          descriptionController.text,
-                                          widget.tag == 1
-                                              ? tagController.text
-                                              : "",
-                                          list,
-                                          registerUserIdes.join(","))
-                                      .then((value) {
-                                    setState(() {
-                                      _isLoading = false;
-                                    });
-                                    Navigator.pop(context, value);
-                                  });
-                                } else {
-                                  await ApiServices.editIssue(
-                                          widget.id!,
-                                          selectIssueCategory.toString(),
-                                          descriptionController.text,
-                                          widget.tag == 1
-                                              ? tagController.text
-                                              : "")
-                                      .then((value) {
-                                    setState(() {
-                                      _isLoading = false;
-                                    });
-                                    Navigator.pop(context, value);
-                                  });
-                                }
-                              }
-                            }
-                          },
-                          child: Image.asset(ImageAsset.btnIssueSave))
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                  )
+                                ],
+                              ),
+                            )
+                          : Container(),
                     ],
                   ),
                   _isLoading
@@ -910,7 +908,7 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
       builder: (BuildContext context) {
         return SingleChildScrollView(
           child: StatefulBuilder(
-            builder: (context, state) {
+            builder: (context, setState) {
               return Container(
                 color: AppColor.white,
                 child: Column(
@@ -1010,13 +1008,15 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                               ApiServices.postAddMember("", code1!,
                                       numberController.text, widget.projectID)
                                   .then((value) {
-                                state(() {
-                                  code = "+91";
-                                  numberController.clear();
-                                  print("value re----");
-                                  teamList
-                                      .add(CustomTeamList(teamDataList: value));
-                                  Navigator.pop(context);
+                                setState(() {
+                                  state(() {
+                                    code = "+91";
+                                    numberController.clear();
+                                    print("value re----");
+                                    teamList.add(
+                                        CustomTeamList(teamDataList: value));
+                                    Navigator.pop(context);
+                                  });
                                 });
                               });
                             }
@@ -1181,17 +1181,15 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                           itemBuilder: (BuildContext context, index) {
                             return InkWell(
                               onTap: () {
-                                for (int i = 0; i < teamList.length; i++) {
-                                  if (index == i) {
-                                    state(() {
-                                      currentIndexTeam = index;
-                                      teamList[index].isChecked = true;
-                                    });
-                                  } else {
-                                    state(() {
-                                      teamList[i].isChecked = false;
-                                    });
-                                  }
+                                if (teamList[index].isChecked == false) {
+                                  state(() {
+                                    // currentIndexTeam = index;
+                                    teamList[index].isChecked = true;
+                                  });
+                                } else {
+                                  state(() {
+                                    teamList[index].isChecked = false;
+                                  });
                                 }
                               },
                               child: Padding(
@@ -1269,21 +1267,21 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                         activeColor: AppColor.mainColor,
                                         value: teamList[index].isChecked,
                                         onChanged: (bool? value) {
-                                          for (int i = 0;
-                                              i < teamList.length;
-                                              i++) {
-                                            if (index == i) {
-                                              state(() {
-                                                currentIndexTeam = index;
-                                                teamList[index].isChecked =
-                                                    true;
-                                              });
-                                            } else {
-                                              state(() {
-                                                teamList[i].isChecked = false;
-                                              });
-                                            }
+                                          // for (int i = 0;
+                                          //     i < teamList.length;
+                                          //     i++) {
+                                          if (teamList[index].isChecked ==
+                                              false) {
+                                            state(() {
+                                              // currentIndexTeam = index;
+                                              teamList[index].isChecked = true;
+                                            });
+                                          } else {
+                                            state(() {
+                                              teamList[index].isChecked = false;
+                                            });
                                           }
+                                          // }
                                         }),
                                   ],
                                 ),
@@ -1297,18 +1295,21 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                       name: "Submit",
                       bg: AppColor.mainColor,
                       onPress: () {
-                        if (currentIndexTeam == null) {
-                          Toasts.showToast("please select member");
-                        } else {
-                          setState(() {
-                            assignTeamMember.add(teamList[currentIndexTeam ?? 0]
-                                .teamDataList
-                                .teamDetails!);
-                            teamList[currentIndexTeam ?? 0].isChecked = false;
-                            currentIndexTeam = null;
-                            Navigator.pop(context);
-                          });
-                        }
+                        // if (currentIndexTeam == null) {
+                        //   Toasts.showToast("please select member");
+                        // } else {
+                        setState(() {
+                          for (int i = 0; i < teamList.length; i++) {
+                            if (teamList[i].isChecked == true) {
+                              assignTeamMember
+                                  .add(teamList[i].teamDataList.teamDetails!);
+                              teamList[i].isChecked = false;
+                            }
+                          }
+                          // currentIndexTeam = null;
+                          Navigator.pop(context);
+                        });
+                        // }
                       },
                       strColor: AppColor.white),
                 )
@@ -1496,7 +1497,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                             withPhoto: true);
                                     _populateContacts(contacts!);
                                     print(contacts);
-
                                     PreferencesManager.setBool(
                                         PreferencesKey.isContact, true);
                                     _setStates(() {});

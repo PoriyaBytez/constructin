@@ -10,7 +10,7 @@ import '../../model/task_category_model.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
 import '../../utils/app_string.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/search_text_form_field.dart';
 import '../../widget/text_form_field.dart';
 
@@ -27,13 +27,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   List<String> taskType = [];
   String? taskTypeValue;
   int selectTaskType = 0;
-
   List<TaskCategoryData> taskCategory = [];
   List<TaskCategoryData> searchTaskCategory = [];
   String? taskCategoryValue;
-
   List<CommandTextFormField> commandTextFormFieldList = [];
-
   int selectTaskCategory = 0;
   bool isSelect = false;
   TextEditingController taskNameController = TextEditingController();
@@ -52,12 +49,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         });
       }
     });
-
     commandTextFormFieldList.add(CommandTextFormField(
       hint: "Task 1",
       controller: taskNameController,
     ));
-
     super.initState();
   }
 
@@ -230,10 +225,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       ],
                     ),
                   ),
-                  InkWell(
+                  GestureDetector(
                     onTap: () {
                       List<String> taskList = [];
-
                       if (selectCategory == '') {
                         setState(() {
                           isSelect = true;
@@ -251,17 +245,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               commandTextFormFieldList[i].controller?.text ??
                                   "");
                         }
+                        ApiServices.postTask(widget.projectId,
+                                selectTaskCategory, taskList.join(","))
+                            .then((value) {
+                          Navigator.pop(context, value);
+                        });
                       }
-                      ApiServices.postTask(widget.projectId, selectTaskCategory,
-                              taskList.join(","))
-                          .then((value) {
-                        Navigator.pop(context, value);
-                      });
                     },
                     child: SizedBox(
-                        height: 25.w,
-                        width: 50.w,
-                        child: Image.asset(ImageAsset.btnSave)),
+                        height: 25.w, child: Image.asset(ImageAsset.btnSave)),
                   ),
                 ],
               ),

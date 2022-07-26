@@ -1,3 +1,4 @@
+import 'package:animated_size_and_fade/animated_size_and_fade.dart';
 import 'package:constructin/screen/team/contacts_screen.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_string.dart';
@@ -11,7 +12,7 @@ import '../../model/team_model.dart';
 import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_dimens.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 
 class TeamMemberListScreen extends StatefulWidget {
   TeamData? teamData;
@@ -141,14 +142,14 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                           child: ListView.builder(
                             itemCount: teamDataList!.length,
                             itemBuilder: (context, index) {
-                              int? joinde = teamDataList![index].joined;
+                              int? joined = teamDataList![index].joined;
                               String projectRight =
                                   teamDataList![index].projectRights ?? "";
                               List b = [];
                               if (projectRight.isNotEmpty) {
                                 b = projectRight.split(',');
                               }
-                              return listItem(index, joinde!, b.length);
+                              return listItem(index, joined!, b.length);
                             },
                           ),
                         ),
@@ -172,7 +173,7 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
     );
   }
 
-  Widget listItem(int index, int joinded, int roleSize) {
+  Widget listItem(int index, int joined, int roleSize) {
     return Padding(
       padding: EdgeInsets.only(top: 4.w, bottom: 4.w),
       child: Column(
@@ -246,7 +247,7 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                       ],
                     ),
                     Text(
-                      joinded == 1 ? "joined" : "Not joined",
+                      joined == 1 ? "joined" : "Not joined",
                       style: Utils.regularTextStyle(
                           fontSize: AppDimens.indicator_size,
                           color: AppColor.green),
@@ -306,97 +307,146 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
               ),
             ),
           ),
-          teamDataList![index].teamDetails?.isShow == true
-              ? Column(
-                  children: [
-                    ListView.builder(
-                        itemCount: teamDataList![index].rights!.length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, i) {
-                          return Padding(
-                            padding: EdgeInsets.only(top: 3),
-                            child: Container(
-                              height: 12.w,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: AppColor.white,
-                                boxShadow: const <BoxShadow>[
-                                  BoxShadow(
-                                      color: AppColor.bg,
-                                      blurRadius: 1.0,
-                                      offset: Offset(0.0, 0.75))
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Row(
-                                  children: [
-                                    Checkbox(
-                                        activeColor: AppColor.mainColor,
-                                        value: teamDataList![index]
-                                            .rights![i]
-                                            .isAllow,
-                                        onChanged: (bool? value) {
-                                          print("value  bool $value");
-                                          setState(() {
+          AnimatedSizeAndFade.showHide(
+            show: teamDataList![index].teamDetails?.isShow ?? false,
+            child: Column(
+              children: [
+                ListView.builder(
+                    itemCount: teamDataList![index].rights!.length,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, i) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: 3),
+                        child: Container(
+                          height: 12.w,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: AppColor.white,
+                            boxShadow: const <BoxShadow>[
+                              BoxShadow(
+                                  color: AppColor.bg,
+                                  blurRadius: 1.0,
+                                  offset: Offset(0.0, 0.75))
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Checkbox(
+                                    activeColor: AppColor.mainColor,
+                                    value:
+                                        teamDataList![index].rights![i].isAllow,
+                                    onChanged: (bool? value) {
+                                      print("value  bool $value");
+                                      setState(() {
+                                        if (teamDataList![index]
+                                                .rights![i]
+                                                .title ==
+                                            "Admin") {
+                                          for (int k = 0;
+                                              k <
+                                                  teamDataList![index]
+                                                      .rights!
+                                                      .length;
+                                              k++) {
                                             teamDataList![index]
-                                                .rights![i]
+                                                .rights![k]
                                                 .isAllow = value;
-                                          });
-                                        }),
-                                    Text(
-                                      "${teamDataList![index].rights![i].title} - ",
-                                      style: Utils.mediumTextStyle(
-                                          fontSize: AppDimens.indicator_size,
-                                          color: AppColor.textColor),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        teamDataList![index]
-                                                .rights![i]
-                                                .description ??
-                                            "",
-                                        style: Utils.regularTextStyle(
-                                            fontSize: AppDimens.indicator_size,
-                                            color: AppColor.textColor),
-                                      ),
-                                    ),
-                                  ],
+                                          }
+                                        } else {
+                                          int count = 0;
+                                          for (int k = 0;
+                                              k <
+                                                  teamDataList![index]
+                                                      .rights!
+                                                      .length;
+                                              k++) {
+                                            if (teamDataList![index]
+                                                    .rights![k]
+                                                    .isAllow ==
+                                                true) {
+                                              count++;
+                                            }
+                                            if (teamDataList![index]
+                                                    .rights![k]
+                                                    .title ==
+                                                "Admin") {
+                                              if (value == false) {
+                                                teamDataList![index]
+                                                    .rights![k]
+                                                    .isAllow = value;
+                                              } else if (count ==
+                                                  (teamDataList![index]
+                                                          .rights!
+                                                          .length -
+                                                      2)) {
+                                                teamDataList![index]
+                                                    .rights![k]
+                                                    .isAllow = true;
+                                              }
+                                            }
+                                          }
+                                          teamDataList![index]
+                                              .rights![i]
+                                              .isAllow = value;
+                                        }
+                                      });
+                                    }),
+                                Text(
+                                  "${teamDataList![index].rights![i].title} - ",
+                                  style: Utils.mediumTextStyle(
+                                      fontSize: AppDimens.indicator_size,
+                                      color: AppColor.textColor),
                                 ),
-                              ),
+                                Expanded(
+                                  child: Text(
+                                    teamDataList![index]
+                                            .rights![i]
+                                            .description ??
+                                        "",
+                                    style: Utils.regularTextStyle(
+                                        fontSize: AppDimens.indicator_size,
+                                        color: AppColor.textColor),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        }),
-                    commandButton(
-                        name: "Save",
-                        bg: AppColor.textFormFieldBg,
-                        onPress: () {
-                          List<int> projectRights = [];
-                          teamDataList![index].rights!.asMap().entries.map((e) {
-                            setState(() {
-                              teamDataList![index].teamDetails?.isShow = false;
-                            });
-                            if (teamDataList![index].rights![e.key].isAllow ==
-                                true) {
-                              projectRights.add(e.key + 1);
-                            }
-                          }).toList();
-                          print(projectRights.join(','));
-                          ApiServices.postRoleAssignee(
-                                  teamDataList![index].registerUserId!,
-                                  teamDataList![index].projectId!,
-                                  projectRights.join(','))
-                              .then((value) {
-                            if (value == true) {
-                              teamMemberBloc.add(
-                                  TeamMemberListPressed(1, widget.projectID!));
-                            }
-                          });
-                        },
-                        strColor: AppColor.textColor3)
-                  ],
-                )
-              : Container()
+                          ),
+                        ),
+                      );
+                    }),
+                commandButton(
+                    name: "Save",
+                    bg: AppColor.textFormFieldBg,
+                    onPress: () {
+                      List<int> projectRights = [];
+                      teamDataList![index].rights!.asMap().entries.map((e) {
+                        setState(() {
+                          teamDataList![index].teamDetails?.isShow = false;
+                        });
+                        if (teamDataList![index].rights![e.key].isAllow ==
+                            true) {
+                          projectRights.add(e.key + 1);
+                        }
+                      }).toList();
+                      print(projectRights.join(','));
+                      ApiServices.postRoleAssignee(
+                              teamDataList![index].registerUserId!,
+                              teamDataList![index].projectId!,
+                              projectRights.join(','))
+                          .then((value) {
+                        if (value == true) {
+                          teamMemberBloc
+                              .add(TeamMemberListPressed(1, widget.projectID!));
+                        }
+                      });
+                    },
+                    strColor: AppColor.textColor3)
+              ],
+            ),
+          )
         ],
       ),
     );

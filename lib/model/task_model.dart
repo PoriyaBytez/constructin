@@ -50,7 +50,10 @@ class TaskDetailsList {
       this.taskMembers,
       this.workCompleted,
       this.taskProgress,
-      this.unitTitle});
+      this.unitTitle,
+      this.grouping,
+      this.colorCode,
+      this.groupingIndex});
 
   int? id;
   int? registerUserId;
@@ -71,6 +74,9 @@ class TaskDetailsList {
   int? taskMembers;
   int? workCompleted;
   String? taskProgress;
+  String? grouping;
+  String? colorCode;
+  int? groupingIndex;
   dynamic unitTitle;
 
   factory TaskDetailsList.fromJson(Map<String, dynamic> json) =>
@@ -99,6 +105,9 @@ class TaskDetailsList {
         workCompleted: json["workCompleted"],
         taskProgress: json["taskProgress"],
         unitTitle: json["unitTitle"],
+        grouping: json["grouping"],
+        colorCode: json["colorCode"],
+        groupingIndex: json["groupingIndex"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -123,7 +132,10 @@ class TaskDetailsList {
         "taskMembers": taskMembers,
         "workCompleted": workCompleted,
         "taskProgress": taskProgress,
-        "unitTitle": unitTitle
+        "unitTitle": unitTitle,
+        "grouping": grouping,
+        "colorCode": colorCode,
+        "groupingIndex": groupingIndex,
       };
 }
 

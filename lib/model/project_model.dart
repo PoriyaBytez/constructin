@@ -43,9 +43,11 @@ class ProjectData {
     this.createdAt,
     this.updatedAt,
     this.issues_count,
+    this.issues_count_seven_days,
     this.members_count,
     this.projectDetail,
     this.projectProgress,
+    this.projectProgressSevenDays,
   });
 
   int? id;
@@ -59,9 +61,11 @@ class ProjectData {
   dynamic createdAt;
   dynamic updatedAt;
   int? issues_count;
+  int? issues_count_seven_days;
   int? members_count;
   ProjectDetail? projectDetail;
   String? projectProgress;
+  String? projectProgressSevenDays;
 
   factory ProjectData.fromJson(Map<String, dynamic> json) => ProjectData(
         id: json["id"],
@@ -75,8 +79,10 @@ class ProjectData {
         createdAt: json["created_at"],
         updatedAt: json["updated_at"],
         issues_count: json["issues_count"],
+        issues_count_seven_days: json["issues_count_seven_days"],
         members_count: json["members_count"],
         projectProgress: json["projectProgress"],
+        projectProgressSevenDays: json["projectProgressSevenDays"],
         projectDetail: ProjectDetail.fromJson(json["project_detail"]),
       );
 
@@ -92,8 +98,10 @@ class ProjectData {
         "created_at": createdAt,
         "updated_at": updatedAt,
         "issues_count": issues_count,
+        "issues_count_seven_days": issues_count_seven_days,
         "members_count": members_count,
         "projectProgress": projectProgress,
+        "projectProgressSevenDays": projectProgressSevenDays,
         "project_detail": projectDetail?.toJson(),
       };
 }

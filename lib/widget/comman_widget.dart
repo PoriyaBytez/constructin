@@ -4,7 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../utils/app_asset.dart';
 import '../utils/app_color.dart';
 import '../utils/app_dimens.dart';
-import '../utils/unil.dart';
+import '../utils/util.dart';
 
 Widget commandButton(
     {required String name,
@@ -42,7 +42,10 @@ Widget commandButton(
 Widget commandTextWithIcon({required String text, required String icon}) {
   return Row(
     children: [
-      SizedBox(height: 5.w, width: 5.w, child: Image.asset(icon)),
+      Padding(
+        padding: EdgeInsets.only(left: 5.0, right: 5.0),
+        child: SizedBox(height: 5.w, width: 5.w, child: Image.asset(icon)),
+      ),
       SizedBox(
         width: 2.w,
       ),
@@ -160,6 +163,48 @@ closeBottomSheet(BuildContext context, VoidCallback? onPressed) {
             ),
           ],
         ),
+      );
+    },
+  );
+}
+
+showMyDialog(
+  BuildContext context,
+  String text,
+  VoidCallback? onPressed,
+) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true, // user must tap button!
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Construct In',
+          style: Utils.mediumTextStyle(
+              color: AppColor.mainColor, fontSize: AppDimens.large_font),
+        ),
+        content: Text(
+          text,
+          style: Utils.regularTextStyle(color: AppColor.black),
+        ),
+        actions: [
+          TextButton(
+            child: Text(
+              'No',
+              style: Utils.mediumTextStyle(color: AppColor.black),
+            ),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text(
+              'Yes',
+              style: Utils.mediumTextStyle(color: AppColor.black),
+            ),
+            onPressed: onPressed,
+          ),
+        ],
       );
     },
   );

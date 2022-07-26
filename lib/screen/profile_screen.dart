@@ -7,7 +7,7 @@ import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
 import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/shared_preferences/preferences_key.dart';
-import 'package:constructin/utils/unil.dart';
+import 'package:constructin/utils/util.dart';
 import 'package:constructin/widget/comman_widget.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -138,7 +138,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         InkWell(
                           onTap: () {
-                            _showMyDialog();
+                            showMyDialog(context,"are you sure, logout this application?",(){
+                              PreferencesManager.clear();
+                              PreferencesManager.remove(PreferencesKey.userModel);
+                              PreferencesManager.remove(PreferencesKey.fcmToken);
+                              PreferencesManager.remove(PreferencesKey.projectList);
+                              PreferencesManager.remove(PreferencesKey.isContact);
+                              Navigator.pushAndRemoveUntil(context,
+                                  MaterialPageRoute(builder: (_) {
+                                    return SignInScreen();
+                                  }), (route) => false);
+                            });
                           },
                           child: Padding(
                             padding: EdgeInsets.only(right: 3.w),
@@ -158,258 +168,214 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 Expanded(
-                    child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    SizedBox(
-                      height: 10.w,
-                    ),
-                    Center(
-                      child: Container(
-                        height: 30.w,
-                        width: 30.w,
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: Container(
-                                height: 30.w,
-                                width: 30.w,
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                        color: AppColor.black, width: 1)),
-                                child: imageFile == null
-                                    ? imageUrl == ""
-                                        ? Icon(
-                                            Icons.person,
-                                            size: 13.w,
-                                          )
-                                        : CircleAvatar(
-                                            radius: 200.0,
-                                            backgroundImage: NetworkImage(
-                                                AppString.basePath + imageUrl),
-                                          )
-                                    : CircleAvatar(
-                                        backgroundImage: FileImage(imageFile!),
-                                        radius: 200.0,
-                                      ),
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                Utils.pickImageDialog(context, () {
-                                  getFromGallery(ImageSource.gallery);
-                                }, () {
-                                  getFromGallery(ImageSource.camera);
-                                });
-                              },
-                              child: Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Padding(
-                                    padding: EdgeInsets.only(bottom: 1.w),
-                                    child: Container(
-                                      height: 10.w,
-                                      width: 10.w,
-                                      decoration: BoxDecoration(
-                                          color: AppColor.white,
-                                          border: Border.all(
-                                              color: AppColor.black, width: 1),
-                                          shape: BoxShape.circle),
-                                      child: Icon(
-                                        Icons.camera_alt_outlined,
-                                        color: AppColor.black,
-                                      ),
-                                    ),
-                                  )),
-                            ),
-                          ],
-                        ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      SizedBox(
+                        height: 10.w,
                       ),
-                    ),
-                    CommandTextFormField(
-                      controller: nameController,
-                      hint: "Enter your name",
-                      focusNode: nameNode,
-                      textInputAction: TextInputAction.next,
-                      textInputType: TextInputType.text,
-                      validator: (value) {
-                        if (value == "") {
-                          return "Please enter your name";
-                        }
-                        return null;
-                      },
-                      onChange: (value) {},
-                    ),
-                    CommandTextFormField(
-                      controller: companyNameController,
-                      hint: "Enter company name",
-                      focusNode: companyNameNode,
-                      textInputAction: TextInputAction.next,
-                      textInputType: TextInputType.text,
-                      onChange: (value) {},
-                      validator: (value) {
-                        if (value == "") {
-                          return "Please enter company name";
-                        }
-                        return null;
-                      },
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(3.w),
-                      child: Container(
-                        height: 15.w,
-                        decoration: BoxDecoration(
-                            color: AppColor.textFormFieldBg,
-                            border: Border.all(
-                                color: AppColor.textFormFieldBg, width: 1),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10))),
-                        child: Center(
-                          child: DropdownButton<String>(
-                            isExpanded: true,
-                            underline: Container(
-                              color: AppColor.textFormFieldBg,
-                              height: 1,
-                              width: double.infinity,
-                            ),
-                            // value: valueTarget,
-                            hint: Text(
-                              'Company Role',
-                              style: Utils.regularTextStyle(
-                                  color: AppColor.hintText, fontSize: 4.w),
-                            ),
-                            value: roleListValue,
-                            iconEnabledColor: AppColor.textFormFieldBg,
-                            dropdownColor: AppColor.textFormFieldBg,
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              size: 30,
-                              color: AppColor.textColor,
-                            ),
-                            elevation: 0,
-                            style: Utils.regularTextStyle(
-                                color: AppColor.textColor,
-                                fontSize: AppDimens.medium_font),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                roleListValue = newValue!;
-                                selectRole = 1 + roleList.indexOf(newValue);
-                              });
-                            },
-                            items: roleList
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Padding(
-                                  padding: EdgeInsets.only(left: 3.w),
-                                  child: Text(value),
+                      Center(
+                        child: Container(
+                          height: 30.w,
+                          width: 30.w,
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Container(
+                                  height: 30.w,
+                                  width: 30.w,
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                          color: AppColor.black, width: 1)),
+                                  child: imageFile == null
+                                      ? imageUrl == ""
+                                          ? Icon(
+                                              Icons.person,
+                                              size: 13.w,
+                                            )
+                                          : CircleAvatar(
+                                              radius: 200.0,
+                                              backgroundImage: NetworkImage(
+                                                  AppString.basePath +
+                                                      imageUrl),
+                                            )
+                                      : CircleAvatar(
+                                          backgroundImage:
+                                              FileImage(imageFile!),
+                                          radius: 200.0,
+                                        ),
                                 ),
-                              );
-                            }).toList(),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  Utils.pickImageDialog(context, () {
+                                    getFromGallery(ImageSource.gallery);
+                                  }, () {
+                                    getFromGallery(ImageSource.camera);
+                                  });
+                                },
+                                child: Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Padding(
+                                      padding: EdgeInsets.only(bottom: 1.w),
+                                      child: Container(
+                                        height: 10.w,
+                                        width: 10.w,
+                                        decoration: BoxDecoration(
+                                            color: AppColor.white,
+                                            border: Border.all(
+                                                color: AppColor.black,
+                                                width: 1),
+                                            shape: BoxShape.circle),
+                                        child: Icon(
+                                          Icons.camera_alt_outlined,
+                                          color: AppColor.black,
+                                        ),
+                                      ),
+                                    )),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                    selectRoles
-                        ? Padding(
-                            padding: EdgeInsets.only(left: 5.w),
-                            child: Text(
-                              "Please select role",
-                              style: TextStyle(
-                                  color: AppColor.red1, fontSize: 12.0),
+                      CommandTextFormField(
+                        controller: nameController,
+                        hint: "Enter your name",
+                        focusNode: nameNode,
+                        textInputAction: TextInputAction.next,
+                        textInputType: TextInputType.text,
+                        validator: (value) {
+                          if (value == "") {
+                            return "Please enter your name";
+                          }
+                          return null;
+                        },
+                        onChange: (value) {},
+                      ),
+                      CommandTextFormField(
+                        controller: companyNameController,
+                        hint: "Enter company name",
+                        focusNode: companyNameNode,
+                        textInputAction: TextInputAction.next,
+                        textInputType: TextInputType.text,
+                        onChange: (value) {},
+                        validator: (value) {
+                          if (value == "") {
+                            return "Please enter company name";
+                          }
+                          return null;
+                        },
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(3.w),
+                        child: Container(
+                          height: 15.w,
+                          decoration: BoxDecoration(
+                              color: AppColor.textFormFieldBg,
+                              border: Border.all(
+                                  color: AppColor.textFormFieldBg, width: 1),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10))),
+                          child: Center(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              underline: Container(
+                                color: AppColor.textFormFieldBg,
+                                height: 1,
+                                width: double.infinity,
+                              ),
+                              // value: valueTarget,
+                              hint: Text(
+                                'Company Role',
+                                style: Utils.regularTextStyle(
+                                    color: AppColor.hintText, fontSize: 4.w),
+                              ),
+                              value: roleListValue,
+                              iconEnabledColor: AppColor.textFormFieldBg,
+                              dropdownColor: AppColor.textFormFieldBg,
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                size: 30,
+                                color: AppColor.textColor,
+                              ),
+                              elevation: 0,
+                              style: Utils.regularTextStyle(
+                                  color: AppColor.textColor,
+                                  fontSize: AppDimens.medium_font),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  roleListValue = newValue!;
+                                  selectRole = 1 + roleList.indexOf(newValue);
+                                });
+                              },
+                              items: roleList.map<DropdownMenuItem<String>>(
+                                  (String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Padding(
+                                    padding: EdgeInsets.only(left: 3.w),
+                                    child: Text(value),
+                                  ),
+                                );
+                              }).toList(),
                             ),
-                          )
-                        : Container(),
-                    SizedBox(
-                      height: 30.w,
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 20.w, right: 20.w),
-                      child: commandButton(
-                          strColor: AppColor.white,
-                          name: 'Save',
-                          onPress: () {
-                            if (roleListValue == '') {
-                              setState(() {
-                                selectRoles = true;
-                              });
-                            } else {
-                              setState(() {
-                                selectRoles = false;
-                              });
-                            }
-                            if (_formKey.currentState!.validate()) {
-                              ApiServices.editProfile(
-                                      imageFile ?? "",
-                                      nameController.text,
-                                      companyNameController.text,
-                                      selectRole)
-                                  .then((value) {
-                                print("value $value");
-                                PreferencesManager.setString(
-                                    PreferencesKey.userModel,
-                                    jsonEncode(value));
-                                Navigator.pop(context, value.data?.image);
-                              });
-                            }
-                          },
-                          bg: AppColor.mainColor),
-                    ),
-                  ],
-                ))
+                          ),
+                        ),
+                      ),
+                      selectRoles
+                          ? Padding(
+                              padding: EdgeInsets.only(left: 5.w),
+                              child: Text(
+                                "Please select role",
+                                style: TextStyle(
+                                    color: AppColor.red1, fontSize: 12.0),
+                              ),
+                            )
+                          : Container(),
+                      SizedBox(
+                        height: 30.w,
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 20.w, right: 20.w),
+                        child: commandButton(
+                            strColor: AppColor.white,
+                            name: 'Save',
+                            onPress: () {
+                              if (roleListValue == '') {
+                                setState(() {
+                                  selectRoles = true;
+                                });
+                              } else {
+                                setState(() {
+                                  selectRoles = false;
+                                });
+                              }
+                              if (_formKey.currentState!.validate()) {
+                                ApiServices.editProfile(
+                                        imageFile ?? "",
+                                        nameController.text,
+                                        companyNameController.text,
+                                        selectRole)
+                                    .then((value) {
+                                  print("value $value");
+                                  PreferencesManager.setString(
+                                      PreferencesKey.userModel,
+                                      jsonEncode(value));
+                                  Navigator.pop(context, value.data?.image);
+                                });
+                              }
+                            },
+                            bg: AppColor.mainColor),
+                      ),
+                    ],
+                  ),
+                )
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Future<void> _showMyDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            'Construct In',
-            style: Utils.mediumTextStyle(
-                color: AppColor.mainColor, fontSize: AppDimens.large_font),
-          ),
-          content: Text(
-            'are you sure, logout this application?',
-            style: Utils.regularTextStyle(color: AppColor.black),
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                'No',
-                style: Utils.mediumTextStyle(color: AppColor.black),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text(
-                'Yes',
-                style: Utils.mediumTextStyle(color: AppColor.black),
-              ),
-              onPressed: () {
-                PreferencesManager.clear();
-                PreferencesManager.remove(PreferencesKey.userModel);
-                PreferencesManager.remove(PreferencesKey.fcmToken);
-                PreferencesManager.remove(PreferencesKey.projectList);
-                PreferencesManager.remove(PreferencesKey.isContact);
-                Navigator.pushAndRemoveUntil(context,
-                    MaterialPageRoute(builder: (_) {
-                  return SignInScreen();
-                }), (route) => false);
-              },
-            ),
-          ],
-        );
-      },
     );
   }
 }

@@ -18,7 +18,7 @@ import '../../utils/app_dimens.dart';
 import '../../utils/app_string.dart';
 import '../../utils/shared_preferences/preferences_key.dart';
 import '../../utils/shared_preferences/preferences_manager.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/comman_widget.dart';
 import '../team/team_mamber_list_screen.dart';
 
@@ -160,11 +160,9 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
             ),
             Expanded(
               child: isLoading
-                  ? Container(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColor.mainColor,
-                        ),
+                  ? Center(
+                      child: CircularProgressIndicator(
+                        color: AppColor.mainColor,
                       ),
                     )
                   : ListView.builder(
@@ -172,6 +170,11 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                       padding: EdgeInsets.zero,
                       shrinkWrap: true,
                       itemBuilder: (context, index) {
+                        String? startDate, endDate;
+                        startDate = Utils.showData(
+                            data?[index].projectDetail?.startDate ?? "");
+                        endDate = Utils.showData(
+                            data?[index].projectDetail?.endDate ?? "");
                         return InkWell(
                           onTap: () {
                             Navigator.push(context,
@@ -220,14 +223,15 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                   style: Utils.regularTextStyle(
                                                       color:
                                                           AppColor.textColor2,
-                                                      fontSize: AppDimens
-                                                          .medium_font),
+                                                      fontSize:
+                                                          AppDimens.large_font),
                                                 ),
                                                 SizedBox(
                                                   height: 1.w,
                                                 ),
                                                 Text(
-                                                  "${data?[index].projectDetail?.startDate ?? ""} to ${data?[index].projectDetail?.endDate ?? ""}",
+                                                  "${startDate ?? ""} to ${endDate ?? ""}",
+                                                  overflow: TextOverflow.clip,
                                                   style: Utils.regularTextStyle(
                                                       color:
                                                           AppColor.textColor2,
@@ -271,9 +275,13 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                   ),
                                                   onSelected: (Menu item) {
                                                     setState(() {
-                                                      if (data?[index]
-                                                              .registerUserId ==
-                                                          data?[index].addBy) {
+                                                      String listB = data?[index]
+                                                          .projectRights;
+                                                      var b = (listB.split(','));
+                                                      print("list ${b.length}");
+                                                      print("list ${b.toString()}");
+
+                                                      if (b.contains("6")) {
                                                         Navigator.push(context,
                                                             MaterialPageRoute(
                                                                 builder: (_) {
@@ -343,26 +351,32 @@ class _ProjectListScreenState extends State<ProjectListScreen> {
                                                             fontSize: AppDimens
                                                                 .default_font),
                                                   ),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                commandTextWithIcon(
-                                                    text:
-                                                        "${data?[index].projectProgress ?? "0.0"}% progress",
-                                                    icon: ImageAsset
-                                                        .iconProgress),
-                                                commandTextWithIcon(
-                                                    text:
-                                                        "${data?[index].issues_count ?? "0"} - issues",
-                                                    icon: ImageAsset.iconIssue),
-                                                commandTextWithIcon(
-                                                    text:
-                                                        "${data?[index].members_count ?? "0"} - members",
-                                                    icon:
-                                                        ImageAsset.iconMember),
-                                              ],
+                                            SingleChildScrollView(
+                                              scrollDirection: Axis.horizontal,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  commandTextWithIcon(
+                                                      text: pageIndex == 0
+                                                          ? "${double.parse(data?[index].projectProgress ?? "0.0").toStringAsFixed(0)}% progress"
+                                                          : "${double.parse(data?[index].projectProgressSevenDays ?? "0.0").toStringAsFixed(0)}% progress",
+                                                      icon: ImageAsset
+                                                          .iconProgress),
+                                                  commandTextWithIcon(
+                                                      text: pageIndex == 0
+                                                          ? "${data?[index].issues_count ?? "0"} - issues"
+                                                          : "${data?[index].issues_count_seven_days ?? "0"} - issues",
+                                                      icon:
+                                                          ImageAsset.iconIssue),
+                                                  commandTextWithIcon(
+                                                      text:
+                                                          "${data?[index].members_count ?? "0"} - members",
+                                                      icon: ImageAsset
+                                                          .iconMember),
+                                                ],
+                                              ),
                                             ),
                                             commandTextWithIcon(
                                                 text:

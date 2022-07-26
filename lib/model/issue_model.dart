@@ -68,7 +68,7 @@ class IssueData {
   dynamic deletedAt;
   DateTime? createdAt;
   DateTime? updatedAt;
-  Project? project;
+  dynamic project;
   IssueCategory? issueCategory;
   dynamic task;
   TeamDetails? teamDetails;
@@ -89,7 +89,7 @@ class IssueData {
         deletedAt: json["deleted_at"],
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
-        project: Project.fromJson(json["project"]),
+        project: json["project"] == null ? null : Project.fromJson(json["project"]),
         commentCount: json["comment_count"],
         status: json["status"],
         issueCategory: IssueCategory.fromJson(json["issue_category"]),

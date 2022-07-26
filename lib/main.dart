@@ -4,6 +4,7 @@ import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/palette_color.dart';
 import 'package:constructin/utils/shared_preferences/preferences_manager.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';

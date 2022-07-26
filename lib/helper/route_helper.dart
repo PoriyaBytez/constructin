@@ -29,8 +29,6 @@ class RouteHelper {
   static String addTeamMember = '/AddTeamMember';
   static String contact = '/ContactScreen';
 
-  // static String teamMemberList = '/TeamMemberList';
-
   static List<GetPage> routes = [
     GetPage(name: splash, page: () => SplashScreen()),
     GetPage(name: signIn, page: () => SignInScreen()),
@@ -42,8 +40,5 @@ class RouteHelper {
     GetPage(name: dashBoard, page: () => DashBoardScreen()),
     GetPage(name: updateTask, page: () => UpdateTaskScreen()),
     GetPage(name: taskReview, page: () => TaskReviewScreen()),
-
-    // GetPage(name: addTeamMember, page: () => AddTeamMemberScreen()),
-    // GetPage(name: teamMemberList, page: () => TeamMemberListScreen()),
   ];
 }

@@ -4,6 +4,7 @@ import 'package:constructin/screen/dashboard/material_screen.dart';
 import 'package:constructin/screen/task/add_task_screen.dart';
 import 'package:constructin/screen/task/update_task_screen.dart';
 import 'package:constructin/utils/app_string.dart';
+import 'package:constructin/utils/toasts.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -17,7 +18,7 @@ import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/comman_widget.dart';
 import '../task/task_issue_screen.dart';
 import '../task/task_review_screen.dart';
@@ -35,15 +36,16 @@ class DashBoardScreen extends StatefulWidget {
 
 class _DashBoardScreenState extends State<DashBoardScreen> {
   int selectIndex = 1;
-  int selectIndex1 = 1;
+  int selectIndex1 = 0;
   bool listNull = false;
   TaskBloc? taskBloc;
   bool isLoading = false;
+  List<TaskDetailsList> taskDetailsListAll = [];
   List<TaskDetailsList> taskDetailsList = [];
   int? projectId;
   List taskRight = [];
   late ProjectData projectData;
-  List<IssueData> issueList = [];
+  List<IssueData>? issueList;
 
   @override
   void initState() {
@@ -52,11 +54,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     taskRight = projectData.projectRights?.split(',');
     projectId = projectData.projectId;
     taskBloc?.add(TaskPressed(projectId: projectId!));
-    ApiServices.getIssueList(projectData.projectId!, 2).then((value) {
-      setState(() {
-        issueList = value.data!;
-      });
-    });
     super.initState();
   }
 
@@ -88,7 +85,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                         children: [
                           InkWell(
                             onTap: () {
-                              Navigator.pop(context, issueList.length);
+                              Navigator.pop(context, issueList?.length);
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(0.0),
@@ -142,14 +139,57 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                               } else if (state is TaskSuccess) {
                                 setState(() {
                                   isLoading = false;
-                                  print(
-                                      "Size : ${state.taskModel.data!.length}");
-                                  taskDetailsList = state.taskModel.data!;
+                                  taskDetailsListAll.clear();
+                                  taskDetailsList.clear();
+                                  taskDetailsListAll = state.taskModel.data!;
+                                  taskDetailsList.addAll(taskDetailsListAll);
                                 });
                               }
                             },
                             child: Column(
                               children: [
+                                Padding(
+                                  padding:
+                                      EdgeInsets.only(left: 3.w, right: 3.w),
+                                  child: SizedBox(
+                                    height: 16.w,
+                                    width: double.infinity,
+                                    child: ListView.builder(
+                                        shrinkWrap: true,
+                                        scrollDirection: Axis.horizontal,
+                                        itemCount: Utils.list.length,
+                                        itemBuilder: (context, index) {
+                                          return planHorizontalList(
+                                              selectIndex1, index, () {
+                                            setState(() {
+                                              selectIndex1 = index;
+                                              taskDetailsList.clear();
+                                              if (index == 0) {
+                                                taskDetailsList
+                                                    .addAll(taskDetailsListAll);
+                                              } else {
+                                                taskDetailsListAll
+                                                    .asMap()
+                                                    .entries
+                                                    .map((e) {
+                                                  if (taskDetailsListAll[e.key]
+                                                          .groupingIndex
+                                                          .toString()
+                                                          .trim() ==
+                                                      index.toString().trim()) {
+                                                    setState(() {
+                                                      taskDetailsList.add(
+                                                          taskDetailsListAll[
+                                                              e.key]);
+                                                    });
+                                                  }
+                                                }).toList();
+                                              }
+                                            });
+                                          });
+                                        }),
+                                  ),
+                                ),
                                 Expanded(
                                     child: isLoading
                                         ? Container(
@@ -178,7 +218,11 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             )))
                       : selectIndex == 3
                           ? (taskRight.contains("1")
-                              ? widgetIssueList(issueList, setState)
+                              ? issueList == null
+                                  ? Expanded(
+                                      child: Center(
+                                          child: CircularProgressIndicator()))
+                                  : widgetIssueList(issueList, setState)
                               : Expanded(
                                   child: Center(
                                   child: Text("You not access Issues"),
@@ -247,6 +291,12 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                             "Issues", () {
                           setState(() {
                             selectIndex = 3;
+                            ApiServices.getIssueList(projectData.projectId!, 2)
+                                .then((value) {
+                              setState(() {
+                                issueList = value.data!;
+                              });
+                            });
                           });
                         }),
                         item(
@@ -290,7 +340,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                       })).then((value) {
                         if (value != null) {
                           setState(() {
-                            issueList.add(value);
+                            issueList?.add(value);
                           });
                         }
                       });
@@ -342,6 +392,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 if (value != null) {
                                   for (int i = 0; i < value.data.length; i++) {
                                     setState(() {
+                                      taskDetailsListAll.add(value.data[i]);
                                       taskDetailsList.add(value.data[i]);
                                     });
                                   }
@@ -441,6 +492,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
           padding: EdgeInsets.only(bottom: 22.w),
           child: InkWell(
             onTap: () {
+              selectIndex1 = 0;
               Navigator.push(context, MaterialPageRoute(builder: (_) {
                 return AddTaskScreen(
                   projectId: projectId!,
@@ -450,6 +502,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   for (int i = 0; i < value.data.length; i++) {
                     setState(() {
                       taskDetailsList.add(value.data[i]);
+                      taskDetailsListAll.add(value.data[i]);
                     });
                   }
                 }
@@ -490,214 +543,251 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
     );
   }
 
+  double bottom = 0.0;
+
   Widget widgetPlan() {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.only(left: 3.w, right: 3.w),
-          child: SizedBox(
-            height: 16.w,
-            width: double.infinity,
-            child: ListView.builder(
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                itemCount: Utils.list.length,
-                itemBuilder: (context, index) {
-                  return planHorizontalList(selectIndex1, index, () {
-                    setState(() {
-                      selectIndex1 = index;
-                    });
-                  });
-                }),
-          ),
-        ),
         Expanded(
-          child: ListView.builder(
-            itemCount: taskDetailsList.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              int differentDate = 0;
-              if (taskDetailsList[index].startDate != null) {
-                DateTime from =
-                    DateTime.parse(taskDetailsList[index].startDate ?? '');
-                DateTime to =
-                    DateTime.parse(taskDetailsList[index].endDate ?? '');
-                differentDate = Utils.daysElapsedSince(from, to);
-              }
-              return Padding(
-                padding: EdgeInsets.only(left: 5.w, right: 5.w, top: 4.w),
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                              color: AppColor.btnUpdateBg,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  topRight: Radius.circular(10))),
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                top: 8.w, left: 4.w, bottom: 3.w),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      taskDetailsList[index].title ?? "",
-                                      overflow: TextOverflow.clip,
-                                      style: Utils.mediumTextStyle(
-                                          fontSize: AppDimens.large_font,
-                                          color: AppColor.textColor5),
-                                    ),
-                                    Text(
-                                      taskDetailsList[index].taskCategory.title,
-                                      overflow: TextOverflow.clip,
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.textColor1,
-                                          fontSize: AppDimens.large_font),
-                                    )
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) {
-                                          return UpdateTaskScreen(
-                                            taskDetailsList:
-                                                taskDetailsList[index],
-                                          );
-                                        })).then((value) {
-                                          setState(() {
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                ListView.builder(
+                  itemCount: taskDetailsList.length,
+                  shrinkWrap: true,
+                  reverse: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    int? differentDate;
+                    print(taskDetailsList[index].startDate);
+                    if (taskDetailsList[index].startDate != null) {
+                      DateTime to =
+                          DateTime.parse(taskDetailsList[index].endDate ?? '');
+                      differentDate =
+                          Utils.daysElapsedSince(DateTime.now(), to);
+                    }
+                    return Padding(
+                      padding: EdgeInsets.only(left: 5.w, right: 5.w, top: 4.w),
+                      child: Column(
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: AppColor.btnUpdateBg,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(10),
+                                        topRight: Radius.circular(10))),
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                      top: 8.w, left: 4.w, bottom: 3.w),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            taskDetailsList[index].title ?? "",
+                                            overflow: TextOverflow.clip,
+                                            style: Utils.mediumTextStyle(
+                                                fontSize: AppDimens.large_font,
+                                                color: AppColor.textColor5),
+                                          ),
+                                          Text(
                                             taskDetailsList[index]
-                                                .issues_count = value;
-                                          });
-                                        });
-                                      },
-                                      child: Container(
+                                                .taskCategory
+                                                .title,
+                                            overflow: TextOverflow.clip,
+                                            style: Utils.regularTextStyle(
+                                                color: AppColor.textColor1,
+                                                fontSize: AppDimens.large_font),
+                                          )
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          InkWell(
+                                            onTap: () {
+                                              Navigator.push(context,
+                                                  MaterialPageRoute(
+                                                      builder: (_) {
+                                                return UpdateTaskScreen(
+                                                  taskDetailsList:
+                                                      taskDetailsList[index],
+                                                );
+                                              })).then((value) {
+                                                setState(() {
+                                                  taskDetailsList[index]
+                                                          .issues_count =
+                                                      value.issues_count;
+                                                  taskDetailsList[index]
+                                                          .taskProgress =
+                                                      value.taskProgress;
+                                                  if (taskDetailsList[index]
+                                                          .startDate !=
+                                                      null) {
+                                                    DateTime from =
+                                                        DateTime.parse(
+                                                            value.startDate ??
+                                                                '');
+                                                    DateTime to =
+                                                        DateTime.parse(
+                                                            value.endDate ??
+                                                                '');
+                                                    differentDate =
+                                                        Utils.daysElapsedSince(
+                                                            from, to);
+                                                  }
+                                                });
+                                              });
+                                            },
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                  color: AppColor.cBg,
+                                                  borderRadius:
+                                                      BorderRadius.circular(5)),
+                                              child: Padding(
+                                                padding: EdgeInsets.all(10.0),
+                                                child: Text(
+                                                  "Update",
+                                                  style: Utils.regularTextStyle(
+                                                      color:
+                                                          AppColor.textColor5,
+                                                      fontSize:
+                                                          AppDimens.large_font),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 2.w,
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                    color: Color(int.parse(
+                                        taskDetailsList[index].colorCode ??
+                                            "")),
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(10),
+                                        bottomRight: Radius.circular(10))),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
+                                  child: Text(
+                                    taskDetailsList[index].grouping ?? "",
+                                    style: Utils.regularTextStyle(
+                                        color: AppColor.textColor1,
+                                        fontSize: AppDimens.indicator_size),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                                color: AppColor.cBg,
+                                borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(10),
+                                    bottomRight: Radius.circular(10))),
+                            child: Padding(
+                              padding: EdgeInsets.only(bottom: 2.w, top: 4.w),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      SizedBox(
+                                        height: 15.w,
+                                        width: 15.w,
+                                        child: CircularPercentIndicator(
+                                          radius: 25.0,
+                                          lineWidth: 5.0,
+                                          percent: double.parse(
+                                                  taskDetailsList[index]
+                                                          .taskProgress ??
+                                                      "0.0") /
+                                              100,
+                                          center: Text(
+                                            "${double.parse(taskDetailsList[index].taskProgress ?? "0.0").toStringAsFixed(0)}%",
+                                            style: Utils.regularTextStyle(
+                                                color: AppColor.progressPercent,
+                                                fontSize: 10.0),
+                                          ),
+                                          progressColor: Colors.green,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${differentDate == null ? "-" : differentDate! < 0 ? "0" : differentDate} days left",
+                                        style: Utils.regularTextStyle(
+                                            color: AppColor.textColor1,
+                                            fontSize: AppDimens.medium_font),
+                                      ),
+                                      Text(
+                                        "${taskDetailsList[index].issues_count ?? "0"} Issues",
+                                        style: Utils.regularTextStyle(
+                                            color: AppColor.red,
+                                            fontSize: AppDimens.medium_font),
+                                      ),
+                                      Container(
+                                        margin: EdgeInsets.all(10),
                                         decoration: BoxDecoration(
-                                            color: AppColor.cBg,
+                                            color: AppColor.btnUpdateBg,
                                             borderRadius:
                                                 BorderRadius.circular(5)),
-                                        child: Padding(
-                                          padding: EdgeInsets.all(10.0),
-                                          child: Text(
-                                            "Update",
-                                            style: Utils.regularTextStyle(
-                                                color: AppColor.textColor5,
-                                                fontSize: AppDimens.large_font),
+                                        child: InkWell(
+                                          onTap: () {
+                                            if (differentDate == 0) {
+                                              Toasts.showToast(
+                                                  "Please update task");
+                                            } else {
+                                              Navigator.push(context,
+                                                  MaterialPageRoute(
+                                                      builder: (_) {
+                                                return TaskReviewScreen(
+                                                    id: taskDetailsList[index]
+                                                        .id,
+                                                    day: differentDate);
+                                              }));
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.all(10.0),
+                                            child: Text(
+                                              "Review",
+                                              style: Utils.regularTextStyle(
+                                                  color: AppColor.textColor5,
+                                                  fontSize:
+                                                      AppDimens.medium_font),
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    SizedBox(
-                                      width: 2.w,
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        Container(
-                          decoration: BoxDecoration(
-                              color: AppColor.cBg1,
-                              borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(10),
-                                  bottomRight: Radius.circular(10))),
-                          child: Padding(
-                            padding: const EdgeInsets.all(6.0),
-                            child: Text(
-                              "Not Started",
-                              style: Utils.regularTextStyle(
-                                  color: AppColor.textColor1,
-                                  fontSize: AppDimens.indicator_size),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                          color: AppColor.cBg,
-                          borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10))),
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: 2.w, top: 4.w),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  height: 15.w,
-                                  width: 15.w,
-                                  child: CircularPercentIndicator(
-                                    radius: 25.0,
-                                    lineWidth: 5.0,
-                                    percent: double.parse(taskDetailsList[index]
-                                                .taskProgress ??
-                                            "0.0") /
-                                        100,
-                                    center: Text(
-                                      "${taskDetailsList[index].taskProgress}%",
-                                      style: Utils.regularTextStyle(
-                                          color: AppColor.progressPercent,
-                                          fontSize: 8.0),
-                                    ),
-                                    progressColor: Colors.green,
-                                  ),
-                                ),
-                                Text(
-                                  "$differentDate days left",
-                                  style: Utils.regularTextStyle(
-                                      color: AppColor.textColor1,
-                                      fontSize: AppDimens.medium_font),
-                                ),
-                                Text(
-                                  "${taskDetailsList[index].issues_count ?? "0"} Issues",
-                                  style: Utils.regularTextStyle(
-                                      color: AppColor.red,
-                                      fontSize: AppDimens.medium_font),
-                                ),
-                                Container(
-                                  margin: EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                      color: AppColor.btnUpdateBg,
-                                      borderRadius: BorderRadius.circular(5)),
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.push(context,
-                                          MaterialPageRoute(builder: (_) {
-                                        return TaskReviewScreen();
-                                      }));
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.all(10.0),
-                                      child: Text(
-                                        "Review",
-                                        style: Utils.regularTextStyle(
-                                            color: AppColor.textColor5,
-                                            fontSize: AppDimens.medium_font),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
-              );
-            },
+                SizedBox(
+                  height: 15.w,
+                )
+              ],
+            ),
           ),
         ),
       ],

@@ -13,7 +13,7 @@ import '../../utils/api_services.dart';
 import '../../utils/app_asset.dart';
 import '../../utils/app_color.dart';
 import '../../utils/app_dimens.dart';
-import '../../utils/unil.dart';
+import '../../utils/util.dart';
 import '../../widget/comman_widget.dart';
 
 class CreateProjectScreen extends StatefulWidget {
@@ -75,7 +75,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   bool isLoading = false;
   CreateProjectBloc createProjectBloc = CreateProjectBloc();
   Color? focusColor;
-
   int listPage = 0;
 
   @override
@@ -150,7 +149,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                   child: CommandTextFormField(
                                     onTab: () {
                                       selectDate(context).then((value) {
-                                        startDateController.text = value;
+                                        startDateController.text =
+                                            Utils.showData(value);
                                       });
                                     },
                                     title: AppString.strStartDate,
@@ -172,7 +172,8 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                       readOnly: true,
                                       onTab: () {
                                         selectDate(context).then((value) {
-                                          endDateController.text = value;
+                                          endDateController.text =
+                                              Utils.showData(value);
                                         });
                                       },
                                       hint: AppString.strEndDate,
@@ -276,9 +277,10 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                                   clientNameController.text,
                                               siteLocation: siteController.text,
                                               projectTypeId: selectProjectType,
-                                              startDate:
-                                                  startDateController.text,
-                                              endDate: endDateController.text,
+                                              startDate: Utils.passData(
+                                                  startDateController.text),
+                                              endDate: Utils.passData(
+                                                  endDateController.text),
                                               saleValue:
                                                   saleValueController.text,
                                               budget: budgetController.text);
