@@ -102,10 +102,8 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
               AppString.basePath = state.userModel?.data?.basePath ?? "";
               ApiServices.getProjectList().then((value) {
                 if (value!.data!.isEmpty) {
-                  print("home");
                   Get.offAndToNamed(RouteHelper.home);
                 } else {
-                  print("projectList");
                   Get.offAndToNamed(RouteHelper.projectList);
                 }
               });
@@ -395,11 +393,9 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           textStyle: Utils.regularTextStyle(
                               fontSize: AppDimens.large_font),
                           onChanged: (value) {
-                            print("contry Code ${value.dialCode}");
                             setState(() {
                               code = value.dialCode;
                               code1 = value.dialCode?.replaceFirst("+", "");
-                              print("code $code");
                             });
                           },
                           // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
@@ -536,7 +532,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
             isLoading = false;
           });
           Toasts.showToast('phone number is not valid.');
-          print('The provided phone number is not valid.');
         } else {
           setState(() {
             isLoading = false;
@@ -569,7 +564,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
       autofillOTP(comingSms?.split(" ")[0].toString());
     } on PlatformException {
       comingSms = 'Failed to get Sms.';
-      print("====>Message: ${comingSms.codeUnits}");
     }
   }
 

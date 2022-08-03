@@ -25,7 +25,7 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> {
   ProjectModel? projectModel;
-  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -33,14 +33,11 @@ class _SplashScreenState extends State<SplashScreen> {
       bool result = await InternetConnectionChecker().hasConnection;
       if (result == true) {
         String body = PreferencesManager.getString(PreferencesKey.userModel);
-        print("body ${body}");
         if (body != "") {
           projectModel = await ApiServices.getProjectList();
           if (projectModel!.data!.isEmpty) {
-            print("home");
             Get.offAndToNamed(RouteHelper.home);
           } else {
-            print("projectList");
             Get.offAndToNamed(RouteHelper.projectList);
           }
         } else {

@@ -53,8 +53,7 @@ class TaskDetailsData {
       this.workCompleted,
       this.issues_count,
       this.taskProgress,
-      this.task
-      });
+      this.task});
 
   int? id;
   int? registerUserId;
@@ -100,7 +99,7 @@ class TaskDetailsData {
         workCompleted: json["workCompleted"],
         issues_count: json["issues_count"],
         taskProgress: json["taskProgress"],
-        task:json["task"] == null ? null : Data.fromJson(json["task"]),
+        task: json["task"] == null ? null : Data.fromJson(json["task"]),
       );
 
   Map<String, dynamic> toJson() => {
@@ -132,15 +131,11 @@ class Data {
     this.endDate,
   });
 
-
   String? startDate;
   String? endDate;
 
-
-  factory Data.fromJson(Map<String, dynamic> json) => Data(
-        startDate: json["startDate"],
-        endDate: json["endDate"]
-      );
+  factory Data.fromJson(Map<String, dynamic> json) =>
+      Data(startDate: json["startDate"], endDate: json["endDate"]);
 
   Map<String, dynamic> toJson() => {
         "startDate": startDate,

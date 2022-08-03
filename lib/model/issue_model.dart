@@ -89,20 +89,23 @@ class IssueData {
         deletedAt: json["deleted_at"],
         createdAt: DateTime.parse(json["created_at"]),
         updatedAt: DateTime.parse(json["updated_at"]),
-        project: json["project"] == null ? null : Project.fromJson(json["project"]),
+        project:
+            json["project"] == null ? null : Project.fromJson(json["project"]),
         commentCount: json["comment_count"],
         status: json["status"],
         issueCategory: IssueCategory.fromJson(json["issue_category"]),
         task: json["task"] == null ? null : Task.fromJson(json["task"]),
         teamDetails: json["team_details"] == null
-            ? null : TeamDetails.fromJson(json["team_details"]),
+            ? null
+            : TeamDetails.fromJson(json["team_details"]),
         attachment: json["attachment"] == null
             ? null
             : List<CommentData>.from(
                 json["attachment"].map((x) => CommentData.fromJson(x))),
         members: json["members"] == null
-            ? null :List<TeamData>.from(
-            json["members"].map((x) => TeamData.fromJson(x))),
+            ? null
+            : List<TeamData>.from(
+                json["members"].map((x) => TeamData.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {

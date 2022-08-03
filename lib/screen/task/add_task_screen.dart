@@ -539,12 +539,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                               ApiServices.postTaskCategory(
                                       taskController.text, null)
                                   .then((value) {
-                                print("value :${value.title}");
                                 setter(() {
                                   state(() {
                                     taskCategory.add(value);
-                                    print(
-                                        "taskCategory size :${taskCategory.length}");
                                     Navigator.pop(context);
                                   });
                                 });
@@ -554,12 +551,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             ApiServices.postTaskCategory(
                                     taskController.text, id)
                                 .then((value) {
-                              print("value :${value.title}");
                               setter(() {
                                 state(() {
                                   taskCategory[index].title = value.title;
-                                  print(
-                                      "taskCategory size :${taskCategory.length}");
                                   Navigator.pop(context);
                                 });
                               });

@@ -81,7 +81,6 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   void initState() {
     // TODO: implement initState
     ApiServices.getProject().then((value) {
-      print("projectType : ${value.data?.length}");
       for (int i = 0; i < value.data!.length; i++) {
         setState(() {
           projectType.add(value.data![i].title ?? "");

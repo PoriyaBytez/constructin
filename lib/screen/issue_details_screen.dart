@@ -312,7 +312,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                         height: 10.w,
                       ),
                       selectIndex == 1
-                          ?   Expanded(
+                          ? Expanded(
                               child: commentList.length == 0
                                   ? Center(child: Text("Not Data Found"))
                                   : ListView.builder(
@@ -401,11 +401,12 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                                                       builder:
                                                                           (_) {
                                                                 return FullScreen(
-                                                                    url: commentList[
-                                                                            index]
-                                                                        .image!,
-                                                                    extention:
-                                                                        path!,);
+                                                                  url: commentList[
+                                                                          index]
+                                                                      .image!,
+                                                                  extention:
+                                                                      path!,
+                                                                );
                                                               }));
                                                             },
                                                             child: Padding(
@@ -446,10 +447,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                           : selectIndex == 2
                               ? Expanded(
                                   child: widget.data.attachment!.isEmpty
-                                      ? Container(
-                                          child: Center(
-                                              child: Text("Not Data Found")),
-                                        )
+                                      ? Center(child: Text("Not Data Found"))
                                       : GridView.builder(
                                           gridDelegate:
                                               const SliverGridDelegateWithFixedCrossAxisCount(
@@ -463,8 +461,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                                 .data.attachment![index].image
                                                 ?.split(".")
                                                 .last;
-                                            print(path?.split(".").last);
-                                            print("extenstion $path");
                                             return InkWell(
                                               onTap: () {
                                                 Navigator.push(context,
@@ -500,7 +496,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                                               (context, url,
                                                                       downloadProgress) =>
                                                                   Center(
-                                                            child: Container(
+                                                            child: SizedBox(
                                                               height: 10.w,
                                                               width: 10.w,
                                                               child: CircularProgressIndicator(
@@ -562,11 +558,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                     ),
                                     Expanded(
                                       child: membersAssign.isEmpty
-                                          ? Container(
-                                              child: Center(
-                                                  child:
-                                                      Text("Not Data Found")),
-                                            )
+                                          ? Center(
+                                              child: Text("Not Data Found"))
                                           : ListView.builder(
                                               itemCount: membersAssign.length,
                                               shrinkWrap: true,
@@ -607,24 +600,35 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                                         ),
                                                         InkWell(
                                                             onTap: () {
-                                                              ApiServices.postIssueRight(
-                                                                  widget
-                                                                      .data.id!,
-                                                                  widget.data
-                                                                      .projectId!,
-                                                                  membersAssign[
-                                                                          index]
-                                                                      .registerUserId!);
-                                                              setState(() {
-                                                                showMyDialog(
-                                                                    context,
-                                                                    "are you sure, remove this members?",
-                                                                    () {
-                                                                  membersAssign
-                                                                      .removeAt(
-                                                                          index);
-                                                                  Navigator.pop(
-                                                                      context);
+                                                              showMyDialog(
+                                                                  context,
+                                                                  "are you sure, remove this members?",
+                                                                  () {
+                                                                ApiServices.postIssueRight(
+                                                                        widget
+                                                                            .data
+                                                                            .id!,
+                                                                        widget
+                                                                            .data
+                                                                            .projectId!,
+                                                                        membersAssign[index]
+                                                                            .registerUserId!)
+                                                                    .then(
+                                                                        (value) {
+                                                                  if (value ==
+                                                                      true) {
+                                                                    setState(
+                                                                        () {
+                                                                      membersAssign
+                                                                          .removeAt(
+                                                                              index);
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                    });
+                                                                  } else {
+                                                                    Navigator.pop(
+                                                                        context);
+                                                                  }
                                                                 });
                                                               });
                                                             },
@@ -853,7 +857,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
           Navigator.pop(context);
         });
       });
-      ;
     }
   }
 
@@ -1270,8 +1273,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                             withProperties: true,
                                             withPhoto: true);
                                     _populateContacts(contacts!);
-                                    print(contacts);
-
                                     PreferencesManager.setBool(
                                         PreferencesKey.isContact, true);
                                     _setStates(() {});
@@ -1302,7 +1303,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                         widget.data.projectId)
                                     .then((value) {
                                   state(() {
-                                    print("value re----");
                                     state(() {
                                       _uiCustomContacts[currentIndex ?? 0]
                                           .isChecked = false;
@@ -1402,12 +1402,10 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                 textStyle: Utils.regularTextStyle(
                                     fontSize: AppDimens.large_font),
                                 onChanged: (value) {
-                                  print("contry Code ${value.dialCode}");
                                   setState(() {
                                     code = value.dialCode;
                                     code1 =
                                         value.dialCode?.replaceFirst("+", "");
-                                    print("code $code");
                                   });
                                 },
                                 // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')

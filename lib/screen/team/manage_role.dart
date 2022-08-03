@@ -238,7 +238,6 @@ class _ManageRoleState extends State<ManageRole> {
                                           value: widget
                                               .teamData!.rights![i].isAllow,
                                           onChanged: (bool? value) {
-                                            print("value  bool $value");
                                             setState(() {
                                               widget.teamData!.rights![i]
                                                   .isAllow = value;
@@ -278,7 +277,6 @@ class _ManageRoleState extends State<ManageRole> {
                                 projectRights.add(e.key + 1);
                               }
                             }).toList();
-                            print(projectRights.join(','));
                             // ApiServices.postRoleAssignee(
                             //     widget.teamData!.registerUserId!,
                             //     widget.teamData!.projectId!,

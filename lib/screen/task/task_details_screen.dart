@@ -52,9 +52,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   FocusNode totalNode = FocusNode();
   FocusNode unitNode = FocusNode();
   DateTime selectedDate = DateTime.now();
-
   String? unitListValue;
-
   List<String> unitList = [];
   int selectUnit = 0;
   List<CustomTeamList> allTeamMember = [];
@@ -95,7 +93,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
             .toList();
         if (value.data != null) {
           for (int i = 0; i < value.data!.length; i++) {
-            print(" task Right ${value.data![i].taskRight}");
             if (value.data![i].taskRight != null) {
               List ab = (value.data![i].taskRight.split(','));
               if (ab.isNotEmpty) {
@@ -130,7 +127,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       contacts = await FlutterContacts.getContacts(
           withProperties: true, withPhoto: true);
       _populateContacts(contacts!);
-      print(contacts);
       isPermissionGrad = true;
       PreferencesManager.setBool(PreferencesKey.isContact, true);
       setState(() {});
@@ -482,7 +478,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               assignTask();
                               assignTaskBottomSheet();
                             },
-                            child: Container(
+                            child: SizedBox(
                               height: 10.w,
                               width: double.infinity,
                               child: Text(
@@ -564,19 +560,32 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         ),
                                         InkWell(
                                           onTap: () {
-                                            setState(() {
+                                            showMyDialog(context,
+                                                "are you sure, remove this members?",
+                                                () {
                                               ApiServices.postTaskRight(
-                                                  widget.id,
-                                                  widget.projectID,
-                                                  assignTeamMember[index].id ??
-                                                      0);
-                                              showMyDialog(context,
-                                                  "are you sure, remove this members?",
-                                                  () {
-                                                assignTeamMember
-                                                    .removeAt(index);
-                                                Navigator.pop(context);
-                                              });
+                                                      widget.id,
+                                                      widget.projectID,
+                                                      assignTeamMember[index]
+                                                              .id ??
+                                                          0)
+                                                  .then((value) => {
+                                                        if (value == true)
+                                                          {
+                                                            setState(() {
+                                                              assignTeamMember
+                                                                  .removeAt(
+                                                                      index);
+                                                              Navigator.pop(
+                                                                  context);
+                                                            })
+                                                          }
+                                                        else
+                                                          {
+                                                            Navigator.pop(
+                                                                context)
+                                                          }
+                                                      });
                                             });
                                           },
                                           child: Container(
@@ -1053,8 +1062,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                             withProperties: true,
                                             withPhoto: true);
                                     _populateContacts(contacts!);
-                                    print(contacts);
-
                                     PreferencesManager.setBool(
                                         PreferencesKey.isContact, true);
                                     _setStates(() {});
@@ -1085,7 +1092,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         widget.projectID)
                                     .then((value) {
                                   state(() {
-                                    print("value re----");
                                     state(() {
                                       _uiCustomContacts[currentIndex ?? 0]
                                           .isChecked = false;
@@ -1172,11 +1178,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             textStyle: Utils.regularTextStyle(
                                 fontSize: AppDimens.large_font),
                             onChanged: (value) {
-                              print("contry Code ${value.dialCode}");
                               setState(() {
                                 code = value.dialCode;
                                 code1 = value.dialCode?.replaceFirst("+", "");
-                                print("code $code");
                               });
                             },
                             // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
@@ -1224,7 +1228,6 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                               state(() {
                                 code = "+91";
                                 numberController.clear();
-                                print("value re----");
                                 teamList
                                     .add(CustomTeamList(teamDataList: value));
                                 Navigator.pop(context);

@@ -12,7 +12,6 @@ class TaskUpdateBloc extends Bloc<TaskUpdateEvent, TaskUpdateState> {
       emit(TaskUpdateLoading());
       try {
         dynamic data = await ApiServices.getDetails(event.taskId, event.date);
-        print("data $data");
         emit(TaskUpdateSuccess(taskDate: data));
       } catch (e) {
         emit(TaskUpdateFailure(error: e.toString()));

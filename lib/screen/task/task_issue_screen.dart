@@ -66,6 +66,7 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
   List<File> imageList = [];
   List<CustomTeamList> teamList = [];
   List<CustomTeamList> allTeamMember = [];
+  List<CustomTeamList> teamMemberList = [];
   List<TeamDetails> assignTeamMember = [];
 
   // int? currentIndexTeam;
@@ -558,7 +559,7 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                     child: Image.asset(ImageAsset.iconSelectPic)),
               ),
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 10.w,
                   child: ListView.builder(
                       padding: EdgeInsets.only(right: 2.w, left: 2.w),
@@ -567,7 +568,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                       itemCount: imageList.length,
                       itemBuilder: (context, index) {
                         final path = imageList[index].path.split(".").last;
-                        print("extenstion $path");
                         return Padding(
                           padding: EdgeInsets.only(right: 2.w),
                           child: path != "pdf"
@@ -860,12 +860,9 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                               ApiServices.postIssueCategory(
                                       issueController.text, null)
                                   .then((value) {
-                                print("value :${value.title}");
                                 setter(() {
                                   state(() {
                                     issueCategory.add(value);
-                                    print(
-                                        "issueCategory size :${issueCategory.length}");
                                     Navigator.pop(context);
                                   });
                                 });
@@ -875,12 +872,9 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                             ApiServices.postIssueCategory(
                                     issueController.text, id)
                                 .then((value) {
-                              print("value :${value.title}");
                               setter(() {
                                 state(() {
                                   issueCategory[index].title = value.title;
-                                  print(
-                                      "issueCategory size :${issueCategory.length}");
                                   Navigator.pop(context);
                                 });
                               });
@@ -958,11 +952,9 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                               textStyle: Utils.regularTextStyle(
                                   fontSize: AppDimens.large_font),
                               onChanged: (value) {
-                                print("contry Code ${value.dialCode}");
                                 setState(() {
                                   code = value.dialCode;
                                   code1 = value.dialCode?.replaceFirst("+", "");
-                                  print("code $code");
                                 });
                               },
                               // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
@@ -1012,7 +1004,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                   state(() {
                                     code = "+91";
                                     numberController.clear();
-                                    print("value re----");
                                     teamList.add(
                                         CustomTeamList(teamDataList: value));
                                     Navigator.pop(context);
@@ -1054,9 +1045,16 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
   getTeamList() async {
     await ApiServices.getTeamMemberList(widget.projectID!).then((value) {
       setState(() {
-        allTeamMember = value.data!
+        teamMemberList = value.data!
             .map((contact) => CustomTeamList(teamDataList: contact))
             .toList();
+        for (int i = 0; i < teamMemberList.length; i++) {
+          List<String> ab = [];
+          ab = (teamMemberList[i].teamDataList.projectRights.split(','));
+          if (!ab.contains("1")) {
+            allTeamMember.add(teamMemberList[i]);
+          }
+        }
       });
     });
   }
@@ -1183,7 +1181,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                               onTap: () {
                                 if (teamList[index].isChecked == false) {
                                   state(() {
-                                    // currentIndexTeam = index;
                                     teamList[index].isChecked = true;
                                   });
                                 } else {
@@ -1496,7 +1493,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                             withProperties: true,
                                             withPhoto: true);
                                     _populateContacts(contacts!);
-                                    print(contacts);
                                     PreferencesManager.setBool(
                                         PreferencesKey.isContact, true);
                                     _setStates(() {});
@@ -1527,7 +1523,6 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                         widget.projectID)
                                     .then((value) {
                                   state(() {
-                                    print("value re----");
                                     state(() {
                                       _uiCustomContacts[currentIndex ?? 0]
                                           .isChecked = false;

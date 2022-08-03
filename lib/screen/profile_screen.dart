@@ -138,16 +138,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         InkWell(
                           onTap: () {
-                            showMyDialog(context,"are you sure, logout this application?",(){
+                            showMyDialog(context,
+                                "are you sure, logout this application?", () {
                               PreferencesManager.clear();
-                              PreferencesManager.remove(PreferencesKey.userModel);
-                              PreferencesManager.remove(PreferencesKey.fcmToken);
-                              PreferencesManager.remove(PreferencesKey.projectList);
-                              PreferencesManager.remove(PreferencesKey.isContact);
+                              PreferencesManager.remove(
+                                  PreferencesKey.userModel);
+                              PreferencesManager.remove(
+                                  PreferencesKey.fcmToken);
+                              PreferencesManager.remove(
+                                  PreferencesKey.projectList);
+                              PreferencesManager.remove(
+                                  PreferencesKey.isContact);
                               Navigator.pushAndRemoveUntil(context,
                                   MaterialPageRoute(builder: (_) {
-                                    return SignInScreen();
-                                  }), (route) => false);
+                                return SignInScreen();
+                              }), (route) => false);
                             });
                           },
                           child: Padding(

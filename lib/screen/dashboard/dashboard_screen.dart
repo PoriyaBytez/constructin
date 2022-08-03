@@ -5,7 +5,6 @@ import 'package:constructin/screen/task/add_task_screen.dart';
 import 'package:constructin/screen/task/update_task_screen.dart';
 import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/toasts.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -43,7 +42,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   List<TaskDetailsList> taskDetailsListAll = [];
   List<TaskDetailsList> taskDetailsList = [];
   int? projectId;
-  List taskRight = [];
+  List projectRights = [];
   late ProjectData projectData;
   List<IssueData>? issueList;
 
@@ -51,7 +50,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
   void initState() {
     taskBloc = BlocProvider.of<TaskBloc>(context);
     projectData = widget.projectData!;
-    taskRight = projectData.projectRights?.split(',');
+    projectRights = projectData.projectRights?.split(',');
     projectId = projectData.projectId;
     taskBloc?.add(TaskPressed(projectId: projectId!));
     super.initState();
@@ -128,7 +127,8 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                 ),
               ),
               selectIndex == 1
-                  ? (taskRight.contains("1")
+                  ? ((projectRights.contains("7") ||
+                          projectRights.contains("1"))
                       ? Expanded(
                           child: BlocListener<TaskBloc, TaskState>(
                             listener: (context, state) {
@@ -192,11 +192,9 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                 ),
                                 Expanded(
                                     child: isLoading
-                                        ? Container(
-                                            child: Center(
-                                              child: CircularProgressIndicator(
-                                                color: AppColor.mainColor,
-                                              ),
+                                        ? Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColor.mainColor,
                                             ),
                                           )
                                         : taskDetailsList.isEmpty
@@ -210,14 +208,14 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                           child:
                               Center(child: Text("You not access Site Plan"))))
                   : selectIndex == 2
-                      ? (taskRight.contains("2")
+                      ? (projectRights.contains("2")
                           ? AttendanceScreen()
                           : Expanded(
                               child: Center(
                               child: Text("You not access Attendance"),
                             )))
                       : selectIndex == 3
-                          ? (taskRight.contains("1")
+                          ? (projectRights.contains("1")
                               ? issueList == null
                                   ? Expanded(
                                       child: Center(
@@ -228,7 +226,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                   child: Text("You not access Issues"),
                                 )))
                           : selectIndex == 4
-                              ? (taskRight.contains("4")
+                              ? (projectRights.contains("4")
                                   ? MaterialScreen()
                                   : Expanded(
                                       child: Center(
@@ -236,7 +234,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                       ),
                                     ))
                               : selectIndex == 5
-                                  ? (taskRight.contains("5")
+                                  ? (projectRights.contains("5")
                                       ? MoreScreen()
                                       : Expanded(
                                           child: Center(
@@ -478,7 +476,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(),
-        Container(
+        SizedBox(
             height: 60.w,
             width: 60.w,
             child: Image.asset(ImageAsset.dashboardImage)),
@@ -560,7 +558,6 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                   physics: NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) {
                     int? differentDate;
-                    print(taskDetailsList[index].startDate);
                     if (taskDetailsList[index].startDate != null) {
                       DateTime to =
                           DateTime.parse(taskDetailsList[index].endDate ?? '');
@@ -746,7 +743,7 @@ class _DashBoardScreenState extends State<DashBoardScreen> {
                                                 BorderRadius.circular(5)),
                                         child: InkWell(
                                           onTap: () {
-                                            if (differentDate == 0) {
+                                            if (differentDate == null) {
                                               Toasts.showToast(
                                                   "Please update task");
                                             } else {

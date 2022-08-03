@@ -24,7 +24,7 @@ import 'shared_preferences/preferences_manager.dart';
 class ApiServices {
   static const String base = "https://admin.constructin.net/api/";
 
-  // static const String base = "http://192.168.1.35:8000/api/";
+  // static const String base = "http://192.168.1.4:8000/api/";
   static const String login = 'login';
   static const String projectType = 'projectType';
   static const String projectCreate = 'projectCreate';
@@ -86,11 +86,9 @@ class ApiServices {
       "deviceId": deviceId,
     });
     if (response.statusCode == 200) {
-      print("response: UserModel ${response.data}");
       Toasts.showToast(response.data["message"]);
       return UserModel.fromJson(response.data);
     } else {
-      print("response: UserModel ${response.data['message']}");
       Toasts.showToast(response.data["message"]);
       throw Exception('Failed to post.');
     }
@@ -106,10 +104,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + projectType, data: {});
     if (response.statusCode == 200) {
-      print("response: ProjectType ${response.data}");
       return ProjectTypeModel.fromJson(response.data);
     } else {
-      print("response: ProjectType ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -126,12 +122,10 @@ class ApiServices {
     ));
     final response = await dio.post(base + projectCreate, data: body);
     if (response.statusCode == 200) {
-      print("response: CreateProject ${response.data}");
       Toasts.showToast(response.data["message"]);
       PreferencesManager.setString(PreferencesKey.projectList, "1");
       return ProjectDetail.fromJson(response.data);
     } else {
-      print("response: CreateProject ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -149,15 +143,11 @@ class ApiServices {
         base + projectList,
       );
       if (response.statusCode == 200) {
-        print("response: ProjectModel ${response.data}");
-
         return ProjectModel.fromJson(response.data);
       } else {
-        print("response: ProjectModel ${response.data['message']}");
         throw Exception('Failed to post.');
       }
     } on SocketException catch (e) {
-      print("Please Connect Internet}");
       throw SocketException(e.toString());
     } on DioError catch (e) {
       return null;
@@ -175,10 +165,8 @@ class ApiServices {
     final response =
         await dio.post(base + teamList, data: {"projectId": projectId});
     if (response.statusCode == 200) {
-      print("response: TeamModel ${response.data}");
       return TeamModel.fromJson(response.data);
     } else {
-      print("response: ProjectModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -201,11 +189,9 @@ class ApiServices {
         "projectId": projectID,
       });
       if (response.statusCode == 200) {
-        print("response: TeamData ${response.data}");
         Toasts.showToast(response.data['message']);
         return TeamData.fromJson(response.data['data']);
       } else {
-        print("response: TeamData ${response.data['message']}");
         throw Exception('Failed to post.');
       }
     } catch (e) {
@@ -230,10 +216,8 @@ class ApiServices {
     final response = await dio.post(base + taskDetails,
         data: {"taskId": taskId.toString(), "date": Utils.passData(inDate)});
     if (response.statusCode == 200) {
-      print("response: DetailsData ${response.data}");
       return TaskDetailsData.fromJson(response.data["data"]);
     } else {
-      print("response: DetailsData ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -253,12 +237,10 @@ class ApiServices {
       "projectRights": projectRights
     });
     if (response.statusCode == 200) {
-      print("response: TeamDetails ${response.data}");
       Toasts.showToast(response.data['message']);
       // return TeamDetails.fromJson(response.data);
       return true;
     } else {
-      print("response: TeamDetails ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -273,10 +255,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + taskCategoryList);
     if (response.statusCode == 200) {
-      print("response: TaskCategoryModel ${response.data}");
       return TaskCategoryModel.fromJson(response.data);
     } else {
-      print("response: TaskCategoryModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -296,11 +276,9 @@ class ApiServices {
       "title": title
     });
     if (response.statusCode == 200) {
-      print("response: TeamData ${response.data}");
       Toasts.showToast(response.data['message']);
       return TaskModel.fromJson(response.data);
     } else {
-      print("response: TeamData ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -316,10 +294,8 @@ class ApiServices {
     final response =
         await dio.post(base + taskList, data: {"projectId": projectId});
     if (response.statusCode == 200) {
-      print("response: TaskModel ${response.data}");
       return TaskModel.fromJson(response.data);
     } else {
-      print("response: TaskModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -341,11 +317,9 @@ class ApiServices {
       "unitId": unitId
     });
     if (response.statusCode == 200) {
-      print("response: TaskModel ${response.data}");
       Toasts.showToast(response.data['message']);
       return TaskDetailsList.fromJson(response.data["data"]);
     } else {
-      print("response: TaskModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -360,10 +334,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + unitList);
     if (response.statusCode == 200) {
-      print("response: UnitModel ${response.data}");
       return UnitModel.fromJson(response.data);
     } else {
-      print("response: UnitModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -382,11 +354,9 @@ class ApiServices {
       ));
       final response = await dio.post(base + taskProgress, data: body);
       if (response.statusCode == 200) {
-        print("response: DetailsModel ${response.data}");
         Toasts.showToast(response.data['message']);
         taskDetailsModel = TaskDetailsModel.fromJson(response.data);
       } else {
-        print("response: DetailsModel ${response.data['message']}");
         throw Exception('Failed to post.');
       }
     } on DioError catch (e) {
@@ -399,22 +369,28 @@ class ApiServices {
   static Future<dynamic> postTaskRight(
       int taskId, int projectId, int registerUserId) async {
     Dio dio = getDio();
-    dio.interceptors.add(InterceptorsWrapper(
-      onResponse: (e, handler) {
-        handler.next(e);
-      },
-    ));
-    final response = await dio.post(base + taskRight, data: {
-      "taskId": taskId.toString(),
-      "projectId": projectId,
-      "registerUserId": registerUserId
-    });
-    if (response.statusCode == 200) {
-      print("response: TaskRight ${response.data}");
-      Toasts.showToast(response.data["message"]);
-    } else {
-      print("response: TaskRight ${response.data['message']}");
-      throw Exception('Failed to post.');
+    try {
+      dio.interceptors.add(InterceptorsWrapper(
+        onResponse: (e, handler) {
+          handler.next(e);
+        },
+      ));
+      final response = await dio.post(base + taskRight, data: {
+        "taskId": taskId.toString(),
+        "projectId": projectId,
+        "registerUserId": registerUserId
+      });
+      if (response.statusCode == 200) {
+        Toasts.showToast(response.data["message"]);
+        return true;
+      }
+    } on DioError catch (e) {
+      if (e.response?.statusCode == 422) {
+        Toasts.showToast(e.response?.data["message"]);
+        return false;
+      } else {
+        throw Exception('Failed to post.');
+      }
     }
   }
 
@@ -437,7 +413,6 @@ class ApiServices {
           data: {"id": id, "title": title});
     }
     if (response.statusCode == 200) {
-      print("response: TaskRight ${response.data}");
       Toasts.showToast(response.data["message"]);
       if (response.data["success"] == false) {
         Toasts.showToast(response.data["messages"]);
@@ -447,7 +422,6 @@ class ApiServices {
         return TaskCategoryData.fromJson(response.data["data"]);
       }
     } else {
-      print("response: TaskRight ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -462,10 +436,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + companyRole);
     if (response.statusCode == 200) {
-      print("response: CompanyRoleModel ${response.data}");
       return CompanyRoleModel.fromJson(response.data);
     } else {
-      print("response: CompanyRoleModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -498,11 +470,9 @@ class ApiServices {
           "currentRoleId": 1
         }));
     if (response.statusCode == 200) {
-      print("response: UserModel ${response.data}");
       Toasts.showToast(response.data["message"]);
       return UserModel.fromJson(response.data);
     } else {
-      print("response: UserModel ${response.data['message']}");
       Toasts.showToast(response.data["message"]);
       throw Exception('Failed to post.');
     }
@@ -519,10 +489,8 @@ class ApiServices {
     final response =
         await dio.post(base + taskImageList, data: {"taskId": taskId});
     if (response.statusCode == 200) {
-      print("response: taskImageList ${response.data}");
       return TaskImageModel.fromJson(response.data);
     } else {
-      print("response: taskImageList ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -545,7 +513,6 @@ class ApiServices {
             "registerUserId": registerUserId
           }));
       if (response.statusCode == 200) {
-        print("response: taskImage ${response.data}");
         Toasts.showToast(response.data['message']);
         return TaskImageModel.fromJson(response.data);
       } else {
@@ -553,7 +520,6 @@ class ApiServices {
       }
     } on DioError catch (e) {
       print(e.message);
-      print(e.type);
     }
     return null;
   }
@@ -568,10 +534,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + issueCategoryList);
     if (response.statusCode == 200) {
-      print("response: IssueCategoryList ${response.data}");
       return TaskCategoryModel.fromJson(response.data);
     } else {
-      print("response: IssueCategoryList ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -596,17 +560,13 @@ class ApiServices {
     }
 
     if (response.statusCode == 200) {
-      print("response: Issue Category ${response.data}");
       Toasts.showToast(response.data["message"]);
       if (response.data["success"] == false) {
-        Toasts.showToast(response.data["messages"]);
         return false;
       } else {
-        Toasts.showToast(response.data["messages"]);
         return TaskCategoryData.fromJson(response.data["data"]);
       }
     } else {
-      print("response: Issue Category ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -640,7 +600,6 @@ class ApiServices {
       Toasts.showToast(response.data['message']);
       return IssueData.fromJson(response.data["data"]);
     } else {
-      print("response: IssueModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -665,7 +624,6 @@ class ApiServices {
       Toasts.showToast(response.data['message']);
       return IssueData.fromJson(response.data["data"]);
     } else {
-      print("response: IssueModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -684,36 +642,41 @@ class ApiServices {
       "type": type,
     });
     if (response.statusCode == 200) {
-      print("response: IssueCategoryList ${response.data}");
       return IssueModel.fromJson(response.data);
     } else {
-      print("response: IssueCategoryList ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
 
   /// Issue Right
-  static Future<TeamData> postIssueRight(
+  static Future<dynamic> postIssueRight(
       int issueId, int projectId, int registerUserId) async {
     Dio dio = getDio();
+    try {
+      dio.interceptors.add(InterceptorsWrapper(
+        onResponse: (e, handler) {
+          handler.next(e);
+        },
+      ));
+      final response = await dio.post(base + issueRight, data: {
+        "issueId": issueId,
+        "projectId": projectId,
+        "registerUserId": registerUserId,
+      });
 
-    dio.interceptors.add(InterceptorsWrapper(
-      onResponse: (e, handler) {
-        handler.next(e);
-      },
-    ));
-    final response = await dio.post(base + issueRight, data: {
-      "issueId": issueId,
-      "projectId": projectId,
-      "registerUserId": registerUserId,
-    });
-    if (response.statusCode == 200) {
-      print("response: Member ${response.data}");
-      Toasts.showToast(response.data['message']);
-      return TeamData.fromJson(response.data);
-    } else {
-      print("response: Member ${response.data['message']}");
-      throw Exception('Failed to post.');
+      if (response.statusCode == 200) {
+        Toasts.showToast(response.data['message']);
+        return true;
+      } else {
+        throw Exception('Failed to post.');
+      }
+    } on DioError catch (e) {
+      if (e.response?.statusCode == 422) {
+        Toasts.showToast(e.response?.data['message']);
+        return false;
+      } else {
+        throw Exception('Failed to post.');
+      }
     }
   }
 
@@ -730,10 +693,8 @@ class ApiServices {
       "issueId": id,
     });
     if (response.statusCode == 200) {
-      print("response: IssueCategoryList ${response.data}");
       return 0;
     } else {
-      print("response: IssueCategoryList ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -757,10 +718,8 @@ class ApiServices {
           "comment": comment
         }));
     if (response.statusCode == 200) {
-      print("response: CommentModel ${response.data}");
       return CommentData.fromJson(response.data["data"]);
     } else {
-      print("response: CommentModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -776,10 +735,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + commentList, data: {"issueId": id});
     if (response.statusCode == 200) {
-      print("response: CommentModel ${response.data}");
       return CommentModel.fromJson(response.data);
     } else {
-      print("response: CommentModel ${response.data['message']}");
       throw Exception('Failed to post.');
     }
   }
@@ -795,10 +752,8 @@ class ApiServices {
     ));
     final response = await dio.post(base + taskReview, data: {"id": id});
     if (response.statusCode == 200) {
-      print("response: TaskView ${response.data}");
       taskDetailsModel = TaskReviewData.fromJson(response.data["data"]);
     } else {
-      print("response: TaskView ${response.data['message']}");
       throw Exception('Failed to post.');
     }
     return taskDetailsModel;
@@ -815,10 +770,7 @@ class ApiServices {
     final response = await dio.post(base + taskImageDelete,
         data: {"taskId": taskId, "taskImageId": taskImageId});
     if (response.statusCode == 200) {
-      print("response: taskImageDelete ${response.data}");
       Toasts.showToast("${response.data['message']}");
-    } else {
-      print("response: taskImageDelete ${response.data['message']}");
     }
   }
 }

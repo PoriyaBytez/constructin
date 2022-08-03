@@ -226,6 +226,4 @@ class Utils {
     var outputFormat = DateFormat("yyyy-MM-dd");
     return outputFormat.format(DateTime.parse(parseDate.toString()));
   }
-
-
 }

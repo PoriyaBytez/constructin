@@ -75,7 +75,9 @@ class TeamData {
         rights: json["rights"] == null
             ? null
             : List<Right>.from(json["rights"].map((x) => Right.fromJson(x))),
-        teamDetails:json["team_details"] == null ? null : TeamDetails.fromJson(json["team_details"]),
+        teamDetails: json["team_details"] == null
+            ? null
+            : TeamDetails.fromJson(json["team_details"]),
       );
 
   Map<String, dynamic> toJson() => {

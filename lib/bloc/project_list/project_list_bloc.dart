@@ -14,10 +14,8 @@ class ProjectListBloc extends Bloc<ProjectListEvent, ProjectListState> {
       emit(ProjectListLoading());
       try {
         ProjectModel? projectModel = await ApiServices.getProjectList();
-        print("projectModelsuccess : ${projectModel}");
         emit(ProjectListSuccess(projectModel: projectModel));
       } catch (e) {
-        print("projectModelsuccess e: ${e.toString}");
         emit(ProjectListFailure(error: (e.toString())));
       }
     });

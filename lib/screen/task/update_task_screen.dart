@@ -57,7 +57,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   var now = DateTime.now();
   var formatter;
   List<String> unitList = [];
-
   List<TaskImageData> taskImageList = [];
   List<IssueData> issueList = [];
 
@@ -781,7 +780,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
       if (value != null) {
         setState(() {
           isLoading = false;
-          print("value File :${value.data!.length}");
           for (int i = 0; i < value.data!.length; i++) {
             taskImageList.add(value.data![i]);
           }
@@ -839,8 +837,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                       itemBuilder: (context, index) {
                         final path =
                             taskImageList[index].image?.split(".").last;
-                        print(path?.split(".").last);
-                        print("extenstion $path");
                         return InkWell(
                           onTap: () {
                             Navigator.push(context,
@@ -852,7 +848,6 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                               );
                             })).then((value) {
                               if (value.toString() == "2") {
-                                print("delete");
                                 setState(() {
                                   ApiServices.imageDelete(taskDetailsList.id!,
                                       taskImageList[index].id!);
@@ -877,7 +872,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                         stalePeriod: const Duration(days: 7),
                                       )),
                                       placeholder: (context, url) => Center(
-                                        child: Container(
+                                        child: SizedBox(
                                           height: 5.w,
                                           width: 5.w,
                                           child: CircularProgressIndicator(
@@ -979,7 +974,7 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
               var outputDate = outputFormat.format(issueList[index].createdAt!);
               return Stack(
                 children: [
-                  Container(
+                  SizedBox(
                     width: 80.w,
                     height: 48.w,
                     child: Card(

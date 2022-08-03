@@ -283,7 +283,9 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                                           color: AppColor.textColor2),
                                     )
                                   : Text(
-                                      "${roleSize} roles",
+                                      roleSize == 7
+                                          ? "Admin"
+                                          : "$roleSize roles",
                                       style: Utils.regularTextStyle(
                                           color: AppColor.textColor2),
                                     ),
@@ -339,7 +341,6 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                                     value:
                                         teamDataList![index].rights![i].isAllow,
                                     onChanged: (bool? value) {
-                                      print("value  bool $value");
                                       setState(() {
                                         if (teamDataList![index]
                                                 .rights![i]
@@ -429,9 +430,11 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
                         if (teamDataList![index].rights![e.key].isAllow ==
                             true) {
                           projectRights.add(e.key + 1);
+                          if (projectRights.contains(6)) {
+                            projectRights.add(7);
+                          }
                         }
                       }).toList();
-                      print(projectRights.join(','));
                       ApiServices.postRoleAssignee(
                               teamDataList![index].registerUserId!,
                               teamDataList![index].projectId!,

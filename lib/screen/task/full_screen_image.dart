@@ -21,7 +21,6 @@ class FullScreen extends StatefulWidget {
 class _FullScreenState extends State<FullScreen> {
   @override
   void initState() {
-    print("AppString.basePath ${AppString.basePath}");
     super.initState();
   }
 

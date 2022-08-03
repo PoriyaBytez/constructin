@@ -50,7 +50,6 @@ class _ContactScreenState extends State<ContactScreen> {
       contacts = await FlutterContacts.getContacts(
           withProperties: true, withPhoto: true);
       _populateContacts(contacts!);
-      print(contacts);
       setState(() {});
     }
   }
@@ -159,11 +158,9 @@ class _ContactScreenState extends State<ContactScreen> {
                         textStyle: Utils.regularTextStyle(
                             fontSize: AppDimens.large_font),
                         onChanged: (value) {
-                          print("contry Code ${value.dialCode}");
                           setState(() {
                             code = value.dialCode;
                             code1 = value.dialCode?.replaceFirst("+", "");
-                            print("code $code");
                           });
                         },
                         // Initial selection and favorite can be one of code ('IT') OR dial_code('+39')
@@ -226,7 +223,6 @@ class _ContactScreenState extends State<ContactScreen> {
                   bg: AppColor.mainColor,
                   onPress: () {
                     if (numberController.text.isNotEmpty) {
-                      print("projectId ${widget.projectID}");
                       ApiServices.postAddMember(nameController.text, code1!,
                               numberController.text, widget.projectID)
                           .then((value) {

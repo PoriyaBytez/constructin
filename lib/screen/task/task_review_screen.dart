@@ -882,12 +882,6 @@ class _TaskReviewScreenState extends State<TaskReviewScreen> {
                                                                 .image![index]
                                                                 .split(".")
                                                                 .last;
-                                                        print(path
-                                                            .split(".")
-                                                            .last);
-                                                        // print("extenstion $path");
-                                                        print(
-                                                            " length :${attachmentList[i].image!.length}");
                                                         return InkWell(
                                                           onTap: () {
                                                             Navigator.push(
@@ -930,7 +924,7 @@ class _TaskReviewScreenState extends State<TaskReviewScreen> {
                                                                               downloadProgress) =>
                                                                           Center(
                                                                         child:
-                                                                            Container(
+                                                                            SizedBox(
                                                                           height:
                                                                               10.w,
                                                                           width:
