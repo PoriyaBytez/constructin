@@ -76,20 +76,40 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   CreateProjectBloc createProjectBloc = CreateProjectBloc();
   Color? focusColor;
   int listPage = 0;
+  ProjectDetail? projectData;
 
   @override
   void initState() {
-    // TODO: implement initState
+    getProjectType();
+    createProjectBloc = BlocProvider.of<CreateProjectBloc>(context);
+    listPage = Get.arguments[0]['lastPage'];
+    super.initState();
+  }
+
+  getProjectType() {
     ApiServices.getProject().then((value) {
       for (int i = 0; i < value.data!.length; i++) {
         setState(() {
           projectType.add(value.data![i].title ?? "");
         });
       }
+      if (Get.arguments[1]['update'] != null) {
+        projectData = Get.arguments[1]['update'];
+        initData();
+      }
     });
-    createProjectBloc = BlocProvider.of<CreateProjectBloc>(context);
-    listPage = Get.arguments;
-    super.initState();
+  }
+
+  initData() {
+    projectNameController.text = projectData!.projectName!;
+    clientNameController.text = projectData!.clientName!;
+    siteController.text = projectData!.siteLocation!;
+    startDateController.text = Utils.showData(projectData!.startDate ?? "");
+    endDateController.text = Utils.showData(projectData!.endDate ?? "");
+    budgetController.text = projectData!.budget ?? '';
+    saleValueController.text = projectData!.saleValue ?? '';
+    projectTypeValue = projectType[projectData!.projectTypeId! - 1];
+    selectProjectType = projectData!.projectTypeId!;
   }
 
   @override
@@ -151,6 +171,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                         startDateController.text =
                                             Utils.showData(value);
                                       });
+                                      selectStartDate = false;
                                     },
                                     title: AppString.strStartDate,
                                     controller: startDateController,
@@ -174,6 +195,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                           endDateController.text =
                                               Utils.showData(value);
                                         });
+                                        selectEndDate = false;
                                       },
                                       hint: AppString.strEndDate,
                                       textInputAction: TextInputAction.next,
@@ -270,14 +292,20 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                     } else {
                                       ProjectDetail createProjectData =
                                           ProjectDetail(
-                                              projectName:
-                                                  projectNameController.text,
+                                              id: projectData
+                                                          ?.id ==
+                                                      null
+                                                  ? null
+                                                  : projectData!.id,
+                                              projectName: projectNameController
+                                                  .text,
                                               clientName:
                                                   clientNameController.text,
                                               siteLocation: siteController.text,
                                               projectTypeId: selectProjectType,
-                                              startDate: Utils.passData(
-                                                  startDateController.text),
+                                              startDate: Utils
+                                                  .passData(
+                                                      startDateController.text),
                                               endDate: Utils.passData(
                                                   endDateController.text),
                                               saleValue:
@@ -399,6 +427,7 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                                           projectTypeValue = newValue!;
                                           selectProjectType =
                                               1 + projectType.indexOf(newValue);
+                                          selectType = false;
                                         });
                                       },
                                       items: projectType

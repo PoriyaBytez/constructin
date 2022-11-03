@@ -6,9 +6,7 @@ class AppString {
   static String createNewProject = "Create New Project";
   static String unifiedSiteExperience = "Unified Site Experience";
   static String sitePlanProgress = "Site Plan & Progress";
-  static String manpowerMaterial = "Manpower & Material";
   static String accounts = "Accounts";
-  static String collaborateProductivity = "Collaborate for Productivity";
   static String readyToExperience =
       "Ready to experience the\ncomplete site management?";
   static String strUnlock = "Unlock";
@@ -26,7 +24,7 @@ class AppString {
   static String strEnterTaskName = "Enter Task Name";
   static String strEnterQuantity = "Enter Quantity";
   static String strNos = "No'S";
-  static String strEnterIssueDescription = "Enter issue description";
+  static String strEnterIssueDescription = "Enter Issue Description";
   static String strAddTaskName = "Add Task Name";
   static String strSelectIssueCategory = "Select issue category";
   static String strErrorLocation = "Please Enter Location";

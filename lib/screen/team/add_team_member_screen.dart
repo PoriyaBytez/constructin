@@ -3,13 +3,10 @@ import 'dart:typed_data';
 import 'package:constructin/screen/team/contacts_screen.dart';
 import 'package:constructin/utils/app_color.dart';
 import 'package:constructin/utils/app_dimens.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_contacts/contact.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:sizer/sizer.dart';
 
 import '../../bloc/team_member/team_member_bloc.dart';
@@ -24,7 +21,7 @@ import '../../widget/search_text_form_field.dart';
 class AddTeamMemberScreen extends StatefulWidget {
   int projectId;
 
-  AddTeamMemberScreen({required this.projectId});
+  AddTeamMemberScreen({Key? key, required this.projectId}) : super(key: key);
 
   @override
   State<AddTeamMemberScreen> createState() => _AddTeamMemberScreenState();
@@ -45,9 +42,6 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
   List<CustomContact> _uiCustomContacts = [];
   List<CustomContact> searchContactsList = [];
   List<CustomContact> _allContacts = [];
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-      GlobalKey<RefreshIndicatorState>();
-  bool _isLoading = false;
   int? currentIndex;
   int? currentIndexSearch;
   CustomContact? contactModel;
@@ -55,7 +49,6 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
   @override
   void initState() {
     projectID = widget.projectId;
-    print("projectID am page: ${projectID}");
     teamMemberBloc = BlocProvider.of<TeamMemberBloc>(context);
     teamMemberBloc.add(TeamMemberPressed(1, projectID!));
     getContact();
@@ -67,7 +60,6 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
       contacts = await FlutterContacts.getContacts(
           withProperties: true, withPhoto: true);
       _populateContacts(contacts!);
-      print(contacts);
       setState(() {});
     }
   }
@@ -79,7 +71,6 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
         _contacts.map((contact) => CustomContact(contact: contact)).toList();
     setState(() {
       _uiCustomContacts = _allContacts;
-      _isLoading = false;
     });
   }
 
@@ -520,8 +511,9 @@ class _AddTeamMemberScreenState extends State<AddTeamMemberScreen> {
 
     _uiCustomContacts.forEach((userDetail) {
       if (userDetail.contact.displayName.toUpperCase().contains(text) ||
-          userDetail.contact.displayName.toLowerCase().contains(text))
+          userDetail.contact.displayName.toLowerCase().contains(text)) {
         searchContactsList.add(userDetail);
+      }
     });
 
     setState(() {});

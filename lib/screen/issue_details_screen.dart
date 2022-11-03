@@ -61,6 +61,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   List<CommentData> commentList = [];
   List<CommentData> attachment = [];
   final ScrollController controller = ScrollController();
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -105,6 +106,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   getCommentList() async {
     await ApiServices.getCommentList(widget.data.id!).then((value) {
       setState(() {
+        isLoading = false;
         commentList = value.data!;
       });
       for (int i = 0; i < commentList.length; i++) {
@@ -166,13 +168,17 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                               widget.data.tag == null
                                   ? Container(
                                       decoration: BoxDecoration(
-                                          color: AppColor.btnUpdateBg,
+                                          color: widget.data.task == null
+                                              ? Colors.transparent
+                                              : AppColor.btnUpdateBg,
                                           borderRadius:
                                               BorderRadius.circular(5)),
                                       child: Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: Text(
-                                          widget.data.task.title ?? "",
+                                          widget.data.task == null
+                                              ? ""
+                                              : widget.data.task.title ?? "",
                                           style: Utils.regularTextStyle(
                                               color: AppColor.textColor2),
                                         ),
@@ -312,138 +318,185 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                         height: 10.w,
                       ),
                       selectIndex == 1
-                          ? Expanded(
-                              child: commentList.length == 0
-                                  ? Center(child: Text("Not Data Found"))
-                                  : ListView.builder(
-                                      shrinkWrap: true,
-                                      controller: controller,
-                                      itemCount: commentList.length,
-                                      itemBuilder: (context, index) {
-                                        var path;
-                                        if (commentList[index].image != null) {
-                                          path = commentList[index]
-                                              .image
-                                              ?.split(".")
-                                              .last;
-                                        }
-                                        return Card(
-                                          child: Padding(
-                                            padding: EdgeInsets.only(
-                                                top: 3.w,
-                                                bottom: 3.w,
-                                                left: 3.w,
-                                                right: 3.w),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  "just now",
-                                                  style: Utils.regularTextStyle(
-                                                      color:
-                                                          AppColor.textColor8,
-                                                      fontSize: AppDimens
-                                                          .default_font),
-                                                ),
-                                                Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                          ? isLoading
+                              ? Expanded(
+                                  child: Center(
+                                      child: CircularProgressIndicator()))
+                              : Expanded(
+                                  child: commentList.isEmpty
+                                      ? Center(child: Text("Not Data Found"))
+                                      : ListView.builder(
+                                          shrinkWrap: true,
+                                          controller: controller,
+                                          itemCount: commentList.length,
+                                          itemBuilder: (context, index) {
+                                            var path;
+                                            if (commentList[index].image !=
+                                                null) {
+                                              path = commentList[index]
+                                                  .image
+                                                  ?.split(".")
+                                                  .last;
+                                            }
+                                            TeamDetails teamDetails =
+                                                commentList[index].members;
+
+                                            return Card(
+                                              child: Padding(
+                                                padding: EdgeInsets.only(
+                                                    top: 3.w,
+                                                    bottom: 3.w,
+                                                    left: 3.w,
+                                                    right: 3.w),
+                                                child: Column(
                                                   children: [
-                                                    Container(
-                                                      height: 8.w,
-                                                      width: 8.w,
-                                                      decoration: BoxDecoration(
-                                                          shape:
-                                                              BoxShape.circle,
-                                                          border: Border.all(
+                                                    Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          teamDetails.name ??
+                                                              teamDetails
+                                                                  .mobile ??
+                                                              "",
+                                                          style: Utils.regularTextStyle(
                                                               color: AppColor
-                                                                  .black,
-                                                              width: 1)),
-                                                      child: commentList[index]
-                                                                  .members
-                                                                  .image ==
-                                                              null
-                                                          ? Icon(
-                                                              Icons.person,
-                                                              size: 5.w,
-                                                            )
-                                                          : CircleAvatar(
-                                                              radius: 200.0,
-                                                              backgroundImage: NetworkImage(AppString
-                                                                      .basePath +
-                                                                  commentList[
-                                                                          index]
-                                                                      .members
-                                                                      ?.image),
-                                                            ),
+                                                                  .textColor8,
+                                                              fontSize: AppDimens
+                                                                  .default_font),
+                                                        ),
+                                                        Text(
+                                                          "just now",
+                                                          style: Utils.regularTextStyle(
+                                                              color: AppColor
+                                                                  .textColor8,
+                                                              fontSize: AppDimens
+                                                                  .default_font),
+                                                        ),
+                                                      ],
                                                     ),
                                                     SizedBox(
-                                                      width: 3.w,
+                                                      height: 1.h,
                                                     ),
-                                                    commentList[index].image ==
-                                                            null
-                                                        ? Text(
-                                                            commentList[index]
-                                                                    .comment ??
-                                                                "",
-                                                            style: Utils.regularTextStyle(
-                                                                color: AppColor
-                                                                    .black,
-                                                                fontSize: AppDimens
-                                                                    .default_font),
-                                                          )
-                                                        : InkWell(
-                                                            onTap: () {
-                                                              Navigator.push(
-                                                                  context,
-                                                                  MaterialPageRoute(
-                                                                      builder:
-                                                                          (_) {
-                                                                return FullScreen(
-                                                                  url: commentList[
+                                                    Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Container(
+                                                          height: 8.w,
+                                                          width: 8.w,
+                                                          decoration: BoxDecoration(
+                                                              shape: BoxShape
+                                                                  .circle,
+                                                              border: Border.all(
+                                                                  color: AppColor
+                                                                      .black,
+                                                                  width: 1)),
+                                                          child: commentList[
                                                                           index]
-                                                                      .image!,
-                                                                  extention:
-                                                                      path!,
-                                                                );
-                                                              }));
-                                                            },
-                                                            child: Padding(
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(8.0),
-                                                              child: path !=
-                                                                      "pdf"
-                                                                  ? Container(
-                                                                      height:
-                                                                          20.w,
-                                                                      width:
-                                                                          20.w,
-                                                                      decoration: BoxDecoration(
-                                                                          borderRadius: BorderRadius.all(Radius.circular(
-                                                                              5)),
-                                                                          image: DecorationImage(
-                                                                              image: NetworkImage((AppString.basePath) + (commentList[index].image ?? "")),
-                                                                              fit: BoxFit.cover)),
-                                                                    )
-                                                                  : Icon(
-                                                                      Icons
-                                                                          .picture_as_pdf_outlined,
-                                                                      size:
-                                                                          10.w,
-                                                                    ),
-                                                            ),
-                                                          ),
+                                                                      .members
+                                                                      .image ==
+                                                                  null
+                                                              ? Icon(
+                                                                  Icons.person,
+                                                                  size: 5.w,
+                                                                )
+                                                              : CircleAvatar(
+                                                                  radius: 200.0,
+                                                                  backgroundImage: NetworkImage(AppString
+                                                                          .basePath +
+                                                                      commentList[
+                                                                              index]
+                                                                          .members
+                                                                          ?.image),
+                                                                ),
+                                                        ),
+                                                        SizedBox(
+                                                          width: 3.w,
+                                                        ),
+                                                        commentList[index]
+                                                                    .image ==
+                                                                null
+                                                            ? Expanded(
+                                                                child: Text(
+                                                                  commentList[index]
+                                                                          .comment ??
+                                                                      "",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .clip,
+                                                                  style: Utils.regularTextStyle(
+                                                                      color: AppColor
+                                                                          .black,
+                                                                      fontSize:
+                                                                          AppDimens
+                                                                              .default_font),
+                                                                ),
+                                                              )
+                                                            : InkWell(
+                                                                onTap: () {
+                                                                  Navigator.push(
+                                                                      context,
+                                                                      MaterialPageRoute(
+                                                                          builder:
+                                                                              (_) {
+                                                                    return FullScreen(
+                                                                      url: commentList[
+                                                                              index]
+                                                                          .image!,
+                                                                      extention:
+                                                                          path!,
+                                                                    );
+                                                                  }));
+                                                                },
+                                                                child: Padding(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                              .all(
+                                                                          8.0),
+                                                                  child: path !=
+                                                                          "pdf"
+                                                                      ? Container(
+                                                                          height:
+                                                                              20.w,
+                                                                          width:
+                                                                              20.w,
+                                                                          child:
+                                                                              ClipRRect(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(5),
+                                                                            child:
+                                                                                Image.network(
+                                                                              (AppString.basePath) + (commentList[index].image ?? ""),
+                                                                              fit: BoxFit.cover,
+                                                                              loadingBuilder: (context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                                                if (loadingProgress == null) return child;
+                                                                                return Center(
+                                                                                  child: CircularProgressIndicator(),
+                                                                                );
+                                                                              },
+                                                                            ),
+                                                                          ),
+                                                                        )
+                                                                      : Icon(
+                                                                          Icons
+                                                                              .picture_as_pdf_outlined,
+                                                                          size:
+                                                                              10.w,
+                                                                        ),
+                                                                ),
+                                                              ),
+                                                      ],
+                                                    ),
                                                   ],
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                            )
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                )
                           : selectIndex == 2
                               ? Expanded(
                                   child: widget.data.attachment!.isEmpty
@@ -522,7 +575,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                   child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Issue raised on - ${outputDate}"),
+                                    Text("Issue raised on - $outputDate"),
                                     SizedBox(
                                       height: 5.w,
                                     ),
@@ -773,8 +826,8 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         bool isCheck = false;
         CustomTeamList? data;
         for (int k = 0; k < membersAssign.length; k++) {
-          // print(" id j ${AllTeamMember[j].teamDataList.teamDetails?.id}");
-          // print("id k ${assignTeamMember[k].id}");
+          print(" id j ${allTeamMember[j].teamDataList.teamDetails?.id}");
+          print("id k ${membersAssign[k].id}");
           if (membersAssign[k].id.toString().trim() ==
               allTeamMember[j].teamDataList.teamDetails?.id.toString().trim()) {
             // print(" ifff :  ");
@@ -1329,7 +1382,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
   TextEditingController numberController = TextEditingController();
   String? code = "+91";
   String? code1 = "91";
-  bool _isLoading = false;
 
   void _populateContacts(Iterable<Contact> contacts) {
     _contacts = contacts.where((item) => item.displayName != null).toList();
@@ -1338,7 +1390,6 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
         _contacts.map((contact) => CustomContact(contact: contact)).toList();
     setState(() {
       _uiCustomContacts = _allContacts;
-      _isLoading = false;
     });
   }
 
@@ -1363,7 +1414,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Sead Invite",
+                              "Send Invite",
                               style: Utils.mediumTextStyle(
                                   fontSize: AppDimens.medium_font),
                             ),

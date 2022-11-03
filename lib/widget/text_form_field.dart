@@ -43,6 +43,7 @@ class CommandTextFormField extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           TextFormField(
+            autovalidateMode: AutovalidateMode.onUserInteraction,
             onTap: onTab,
             controller: controller,
             readOnly: readOnly,

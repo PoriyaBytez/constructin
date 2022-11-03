@@ -81,8 +81,6 @@ class _TaskReviewScreenState extends State<TaskReviewScreen> {
             }
             attachmentList
                 .add(AttachmentData(date: dateList[j], image: imageList));
-            print("attachmentList date ${attachmentList[j].date}");
-            print("attachmentList image ${attachmentList[j].image!.length}");
           }
         }
       });
@@ -98,7 +96,7 @@ class _TaskReviewScreenState extends State<TaskReviewScreen> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            appBar("Tack Review- ${taskDetailsModel.title ?? ""}", () {
+            appBar("Task Review- ${taskDetailsModel.title ?? ""}", () {
               Get.back();
             }),
             Padding(

@@ -22,7 +22,6 @@ class RouteHelper {
   static String dashBoard = '/DashBoardScreen';
   static String addTask = '/AddTask';
   static String updateTask = '/UpdateTask';
-
   static String taskIssue = '/TaskIssue';
   static String issueDetails = '/IssueDetails';
   static String taskReview = '/TaskReview';

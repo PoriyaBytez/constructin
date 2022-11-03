@@ -272,10 +272,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                       startDateController.text =
                                           Utils.showData(value);
                                     });
-                                    // setState(() async {
-                                    //   startDateController.text =
-                                    //       await selectDate(context);
-                                    // });
+                                    selectStartDate = false;
                                   },
                                   title: AppString.strStartDate,
                                   controller: startDateController,
@@ -299,10 +296,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                         endDateController.text =
                                             Utils.showData(value);
                                       });
-                                      /* setState(() async {
-                                        endDateController.text =
-                                            await selectDate(context);
-                                      });*/
+                                      selectEndDate = false;
                                     },
                                     hint: AppString.strEndDate,
                                     textInputAction: TextInputAction.next,
@@ -362,6 +356,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                   hint: AppString.strEnterTotalWork,
                                   textInputAction: TextInputAction.next,
                                   textInputType: TextInputType.number,
+                                  onChange: (value) {
+                                    selectTotal = false;
+                                    setState(() {});
+                                  },
                                 ),
                               ),
                               Expanded(
@@ -418,6 +416,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                                               readOnly = true;
                                               totalController.text = "100";
                                             }
+                                            isUnit = false;
                                           });
                                         },
                                         items: unitList
@@ -495,6 +494,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                             child: ListView.builder(
                                 itemCount: assignTeamMember.length,
                                 shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
                                 itemBuilder: (context, index) {
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
@@ -658,7 +658,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, state) {
           return SizedBox(
-            height: 70.h,
+            height: 71.h,
             child: Column(
               children: <Widget>[
                 Padding(

@@ -145,7 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   strColor: AppColor.white,
                   bg: AppColor.mainColor,
                   onPress: () {
-                    Get.offAndToNamed(RouteHelper.createProject, arguments: 0);
+                    Get.offAndToNamed(RouteHelper.createProject, arguments: [
+                      {"lastPage": 0},
+                      {"update": null}
+                    ]);
                   }),
             ),
             Spacer(),

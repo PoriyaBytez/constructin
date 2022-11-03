@@ -9,7 +9,6 @@ import 'package:constructin/utils/app_string.dart';
 import 'package:constructin/utils/shared_preferences/preferences_key.dart';
 import 'package:constructin/utils/util.dart';
 import 'package:constructin/widget/comman_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
@@ -74,8 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (pickedFile != null) {
       setState(() {
         imageFile = File(pickedFile.path);
-        print('size 72256 : ${imageFile?.lengthSync()}');
-        print("imageFile : $imageFile");
         Navigator.pop(context);
       });
     }
@@ -180,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         height: 10.w,
                       ),
                       Center(
-                        child: Container(
+                        child: SizedBox(
                           height: 30.w,
                           width: 30.w,
                           child: Stack(
@@ -363,7 +360,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         companyNameController.text,
                                         selectRole)
                                     .then((value) {
-                                  print("value $value");
                                   PreferencesManager.setString(
                                       PreferencesKey.userModel,
                                       jsonEncode(value));

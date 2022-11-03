@@ -24,11 +24,13 @@ import 'shared_preferences/preferences_manager.dart';
 class ApiServices {
   static const String base = "https://admin.constructin.net/api/";
 
-  // static const String base = "http://192.168.1.4:8000/api/";
+  // static const String base = "http://192.168.1.10:8000/api/";
   static const String login = 'login';
   static const String projectType = 'projectType';
   static const String projectCreate = 'projectCreate';
   static const String projectList = 'projectList';
+  static const String projectUpdate = 'projectUpdate';
+  static const String projectDelete = 'projectDelete';
   static const String teamList = 'teamList';
   static const String createTeam = 'createTeam';
   static const String teamRight = 'teamRight';
@@ -36,6 +38,7 @@ class ApiServices {
   static const String createTask = 'createTask';
   static const String taskList = 'taskList';
   static const String taskUpdate = 'taskUpdate';
+  static const String taskDelete = 'taskDelete';
   static const String unitList = 'unitList';
   static const String taskProgress = 'taskProgress';
   static const String taskDetails = 'taskDetails';
@@ -52,6 +55,7 @@ class ApiServices {
       'issueCategoryMemberWiseEdit';
   static const String createIssue = 'createIssue';
   static const String issueEdit = 'issueEdit';
+  static const String issueDelete = 'issueDelete';
   static const String issueList = 'issueList';
   static const String issueRight = 'issueRight';
   static const String issueClose = 'issueClose';
@@ -120,7 +124,13 @@ class ApiServices {
         handler.next(e);
       },
     ));
-    final response = await dio.post(base + projectCreate, data: body);
+
+    final Response response;
+    if (data.id == null) {
+      response = await dio.post(base + projectCreate, data: body);
+    } else {
+      response = await dio.post(base + projectUpdate, data: body);
+    }
     if (response.statusCode == 200) {
       Toasts.showToast(response.data["message"]);
       PreferencesManager.setString(PreferencesKey.projectList, "1");
@@ -152,6 +162,26 @@ class ApiServices {
     } on DioError catch (e) {
       return null;
     }
+  }
+
+  /// delete Project
+  static Future<bool> postProjectDelete(int id) async {
+    bool isDelete = false;
+    Dio dio = getDio();
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + projectDelete, data: {
+      "projectId": id,
+    });
+    if (response.statusCode == 200) {
+      Toasts.showToast("${response.data['message']}");
+      isDelete = true;
+      return isDelete;
+    }
+    return isDelete;
   }
 
   /// Get TeamMemberList
@@ -321,6 +351,23 @@ class ApiServices {
       return TaskDetailsList.fromJson(response.data["data"]);
     } else {
       throw Exception('Failed to post.');
+    }
+  }
+
+  /// delete task
+  static postTaskDelete(int id) async {
+    Dio dio = getDio();
+    bool isDelete = false;
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + taskDelete, data: {
+      "taskId": id,
+    });
+    if (response.statusCode == 200) {
+      Toasts.showToast("${response.data['message']}");
     }
   }
 
@@ -626,6 +673,26 @@ class ApiServices {
     } else {
       throw Exception('Failed to post.');
     }
+  }
+
+  /// delete Issue
+  static postIssueDelete(int id) async {
+    Dio dio = getDio();
+    bool isDelete = false;
+    dio.interceptors.add(InterceptorsWrapper(
+      onResponse: (e, handler) {
+        handler.next(e);
+      },
+    ));
+    final response = await dio.post(base + issueDelete, data: {
+      "issueId": id,
+    });
+    if (response.statusCode == 200) {
+      Toasts.showToast("${response.data['message']}");
+      // isDelete = response.data['success'];
+      // return isDelete;
+    }
+    // return isDelete;
   }
 
   /// Issue List

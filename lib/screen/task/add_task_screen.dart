@@ -76,6 +76,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       onTap: () {
                         searchController.text = '';
                         categoryListBottomSet();
+                        isSelect = false;
                       },
                       child: Container(
                           height: 15.w,
@@ -92,7 +93,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                 padding: EdgeInsets.only(left: 3.w),
                                 child: Text(
                                   selectCategory == ''
-                                      ? "Select/Add Tack category"
+                                      ? "Select/Add Task category"
                                       : selectCategory,
                                   style: Utils.regularTextStyle(
                                       color: selectCategory == ''
@@ -283,7 +284,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 Padding(
                   padding: EdgeInsets.all(5.w),
                   child: Text(
-                    "Select or add New task category",
+                    "Select or add new task category",
                     style:
                         Utils.mediumTextStyle(fontSize: AppDimens.large_font),
                   ),
@@ -469,8 +470,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
     taskCategory.forEach((task) {
       if (task.title!.toUpperCase().contains(text) ||
-          task.title!.toLowerCase().contains(text))
+          task.title!.toLowerCase().contains(text)) {
         searchTaskCategory.add(task);
+      }
     });
 
     setter(() {});

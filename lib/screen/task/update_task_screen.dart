@@ -39,7 +39,7 @@ class UpdateTaskScreen extends StatefulWidget {
   State<UpdateTaskScreen> createState() => _UpdateTaskScreenState();
 }
 
-enum Menu { itemOne }
+enum Menu { itemOne, itemTwo }
 
 class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
   TextEditingController quantityController = TextEditingController();
@@ -1038,34 +1038,57 @@ class _UpdateTaskScreenState extends State<UpdateTaskScreen> {
                                       size: 30,
                                     ),
                                     onSelected: (Menu item) {
-                                      setState(() {
-                                        Navigator.push(context,
-                                            MaterialPageRoute(builder: (_) {
-                                          return TaskIssueScreen(
-                                            tag: 0,
-                                            edit: 1,
-                                            id: issueList[index].id,
-                                            issueData: issueList[index],
-                                          );
-                                        })).then((value) {
-                                          if (value != null) {
-                                            setState(() {
-                                              issueList[index]
-                                                      .issueCategory!
-                                                      .title =
-                                                  value.issueCategory!.title;
-                                              issueList[index].title =
-                                                  value.title;
-                                            });
-                                          }
+                                      if (item.index == 0) {
+                                        setState(() {
+                                          Navigator.push(context,
+                                              MaterialPageRoute(builder: (_) {
+                                            return TaskIssueScreen(
+                                              tag: 0,
+                                              edit: 1,
+                                              id: issueList[index].id,
+                                              issueData: issueList[index],
+                                            );
+                                          })).then((value) {
+                                            if (value != null) {
+                                              setState(() {
+                                                issueList[index]
+                                                        .issueCategory!
+                                                        .title =
+                                                    value.issueCategory!.title;
+                                                issueList[index].title =
+                                                    value.title;
+                                              });
+                                            }
+                                          });
                                         });
-                                      });
+                                      } else if (item.index == 1) {
+                                        showMyDialog(context,
+                                            "are you sure, delete this Issue?",
+                                            () {
+                                          Navigator.pop(context);
+                                          ApiServices.postIssueDelete(
+                                              issueList[index].id!);
+                                          setState(() {
+                                            issueList.removeAt(index);
+                                          });
+                                          // .then((value) => () {
+                                          //       print("value $value");
+                                          //       if (value == true) {
+                                          //
+                                          //       }
+                                          //     });
+                                        });
+                                      }
                                     },
                                     itemBuilder: (BuildContext context) =>
                                         <PopupMenuEntry<Menu>>[
                                           const PopupMenuItem<Menu>(
                                             value: Menu.itemOne,
                                             child: Text('Issue edit'),
+                                          ),
+                                          const PopupMenuItem<Menu>(
+                                            value: Menu.itemTwo,
+                                            child: Text('Issue delete'),
                                           ),
                                         ]),
                               ],

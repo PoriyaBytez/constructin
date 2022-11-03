@@ -470,7 +470,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
                           setState(() {
                             isLoading = true;
                           });
-
                           verifyPhoneNumber(context);
                         }
                       },
@@ -540,7 +539,6 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
         }
       },
       codeSent: (String verificationId, int? resendToken) async {
-        // Toasts.showToast(verificationId.toString());
         setState(() {
           varification = true;
           isLoading = false;
@@ -561,6 +559,10 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
     try {
       comingSms = await AltSmsAutofill().listenForSms;
       print("====>Message: ${comingSms?.split(" ")[0]}");
+      // var string = comingSms!.split(" ");
+      // print(" list $string");
+      // var value = string.;
+      // print("====>Message: ${value.toString()}");
       autofillOTP(comingSms?.split(" ")[0].toString());
     } on PlatformException {
       comingSms = 'Failed to get Sms.';

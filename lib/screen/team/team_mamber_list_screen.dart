@@ -57,117 +57,127 @@ class _TeamMemberListScreenState extends State<TeamMemberListScreen> {
         },
         child: Scaffold(
           backgroundColor: AppColor.white,
-          body: Column(
-            children: [
-              Container(
-                height: 15.w,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColor.white,
-                  boxShadow: const <BoxShadow>[
-                    BoxShadow(
-                        color: AppColor.bg,
-                        blurRadius: 10.0,
-                        offset: Offset(0.0, 0.75))
-                  ],
-                ),
-                child: Padding(
-                  padding: EdgeInsets.only(left: 5.w, top: 3.w, bottom: 3.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
+          body: WillPopScope(
+              onWillPop: () {
+                Navigator.pop(context, teamDataList!.length);
+                return Future(() => false);
+              },
+              child: Column(
+                children: [
+                  Container(
+                    height: 15.w,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColor.white,
+                      boxShadow: const <BoxShadow>[
+                        BoxShadow(
+                            color: AppColor.bg,
+                            blurRadius: 10.0,
+                            offset: Offset(0.0, 0.75))
+                      ],
+                    ),
+                    child: Padding(
+                      padding:
+                          EdgeInsets.only(left: 5.w, top: 3.w, bottom: 3.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          InkWell(
-                            onTap: () {
-                              Navigator.pop(context, teamDataList!.length);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(0.0),
-                              child: SizedBox(
-                                  height: 5.w,
-                                  width: 7.w,
-                                  child: Image.asset(ImageAsset.arrow_back)),
-                            ),
+                          Row(
+                            children: [
+                              InkWell(
+                                onTap: () {
+                                  Navigator.pop(context, teamDataList!.length);
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: SizedBox(
+                                      height: 5.w,
+                                      width: 7.w,
+                                      child:
+                                          Image.asset(ImageAsset.arrow_back)),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 5.w,
+                              ),
+                              Text(
+                                "Add Team",
+                                style: Utils.regularTextStyle(
+                                    color: AppColor.textColor,
+                                    fontSize: AppDimens.large_font),
+                              ),
+                            ],
                           ),
-                          SizedBox(
-                            width: 5.w,
-                          ),
-                          Text(
-                            "Add Team",
-                            style: Utils.regularTextStyle(
-                                color: AppColor.textColor,
-                                fontSize: AppDimens.large_font),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    right: 6.w, top: 1.w, bottom: 1.w),
+                                child: Image.asset(ImageAsset.iconFilter),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                    right: 5.w, top: 1.w, bottom: 1.w),
+                                child: Image.asset(ImageAsset.iconsSearch),
+                              ),
+                              SizedBox(
+                                width: 10.w,
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      Row(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(
-                                right: 6.w, top: 1.w, bottom: 1.w),
-                            child: Image.asset(ImageAsset.iconFilter),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                right: 5.w, top: 1.w, bottom: 1.w),
-                            child: Image.asset(ImageAsset.iconsSearch),
-                          ),
-                          SizedBox(
-                            width: 10.w,
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              isLoading
-                  ? Expanded(
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppColor.mainColor,
-                        ),
-                      ),
-                    )
-                  : teamDataList!.isEmpty
+                  isLoading
                       ? Expanded(
                           child: Center(
-                              child: Padding(
-                            padding: EdgeInsets.all(20.w),
-                            child: Text("No Data Found."),
-                          )),
-                        )
-                      : Expanded(
-                          child: ListView.builder(
-                            itemCount: teamDataList!.length,
-                            itemBuilder: (context, index) {
-                              int? joined = teamDataList![index].joined;
-                              String projectRight =
-                                  teamDataList![index].projectRights ?? "";
-                              List b = [];
-                              if (projectRight.isNotEmpty) {
-                                b = projectRight.split(',');
-                              }
-                              return listItem(index, joined!, b.length);
-                            },
+                            child: CircularProgressIndicator(
+                              color: AppColor.mainColor,
+                            ),
                           ),
-                        ),
-              Padding(
-                padding: EdgeInsets.all(3.w),
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: commandButton(
-                      name: "Add Member",
-                      bg: AppColor.mainColor,
-                      onPress: () {
-                        addMember();
-                      },
-                      strColor: AppColor.white),
-                ),
-              )
-            ],
-          ),
+                        )
+                      : teamDataList!.isEmpty
+                          ? Expanded(
+                              child: Center(
+                                  child: Padding(
+                                padding: EdgeInsets.all(20.w),
+                                child: Text("No Data Found."),
+                              )),
+                            )
+                          : Expanded(
+                              child: ListView.builder(
+                                itemCount: teamDataList!.length,
+                                itemBuilder: (context, index) {
+                                  int? joined = teamDataList![index].joined;
+                                  String projectRight =
+                                      teamDataList![index].projectRights ?? "";
+                                  List b = [];
+                                  if (projectRight.isNotEmpty) {
+                                    b = projectRight.split(',');
+                                    if (b.contains("7")) {
+                                      b.remove("7");
+                                    }
+                                  }
+                                  return listItem(index, joined!, b.length);
+                                },
+                              ),
+                            ),
+                  Padding(
+                    padding: EdgeInsets.all(3.w),
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: commandButton(
+                          name: "Add Member",
+                          bg: AppColor.mainColor,
+                          onPress: () {
+                            addMember();
+                          },
+                          strColor: AppColor.white),
+                    ),
+                  )
+                ],
+              )),
         ),
       ),
     );
