@@ -1350,7 +1350,7 @@ class _TaskIssueScreenState extends State<TaskIssueScreen> {
                                   shape: BoxShape.circle,
                                   color: AppColor.green),
                               child: Icon(
-                                Icons.whatsapp,
+                                Icons.add,
                                 size: 25,
                                 color: AppColor.white,
                               ),

@@ -1206,7 +1206,7 @@ class _IssueDetailsScreenState extends State<IssueDetailsScreen> {
                                   shape: BoxShape.circle,
                                   color: AppColor.green),
                               child: Icon(
-                                Icons.whatsapp,
+                                Icons.sensor_occupied,
                                 size: 25,
                                 color: AppColor.white,
                               ),
